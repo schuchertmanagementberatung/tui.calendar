@@ -1,4 +1,5 @@
 <div class="{{CSS_PREFIX}}time-date-schedule-block" data-id="{{stamp model}}" style="width: 100%; height: 100%;">
+    {{#unless croppedEnd}}<div class="{{CSS_PREFIX}}time-resize-handle resize-handle-top handle-x">&nbsp;</div>{{/unless}}
     <div class="{{CSS_PREFIX}}time-schedule {{CSS_PREFIX}}time-date-schedule-block-focused" style="color: #ffffff; background-color:{{model.dragBgColor}};">
         {{#if hasGoingDuration}}
             <div class="{{CSS_PREFIX}}time-schedule-content {{CSS_PREFIX}}time-schedule-content-travel-time" style="border-color:{{model.borderColor}}; border-bottom: 1px dashed {{model.color}}; height: {{goingDurationHeight}}%;">{{{goingDuration-tmpl model}}}</div>
@@ -10,6 +11,6 @@
             <div class="{{CSS_PREFIX}}time-schedule-content {{CSS_PREFIX}}time-schedule-content-travel-time" style="border-color:{{model.borderColor}}; border-top: 1px dashed {{model.color}}; height: {{comingDurationHeight}}%;">{{{comingDuration-tmpl model}}}</div>
         {{/if}}
     </div>
-    {{#unless croppedEnd}}<div class="{{CSS_PREFIX}}time-resize-handle handle-x">&nbsp;</div>{{/unless}}
+    {{#unless croppedEnd}}<div class="{{CSS_PREFIX}}time-resize-handle resize-handle-bottom handle-x">&nbsp;</div>{{/unless}}
     <div class="{{CSS_PREFIX}}time-date-schedule-block-cover"></div>
 </div>

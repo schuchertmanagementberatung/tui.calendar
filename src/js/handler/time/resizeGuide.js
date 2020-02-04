@@ -59,9 +59,12 @@ function TimeResizeGuide(timeResize) {
 
     timeResize.on({
         'timeResizeDragstart': this._onDragStart,
+        'timeResizeDragstartTop': this._onDragStartTop,
+        'timeResizeDragTop': this._onDragTop,
         'timeResizeDrag': this._onDrag,
         'timeResizeDragend': this._clearGuideElement,
-        'timeResizeClick': this._clearGuideElement
+        'timeResizeClick': this._clearGuideElement,
+        'timeResizeClickTop': this._clearGuideElement
     }, this);
 }
 
@@ -128,7 +131,7 @@ TimeResizeGuide.prototype._refreshGuideElement = function(guideHeight, minTimeHe
  * TimeMove#timeMoveDragstart event handler
  * @param {object} dragStartEventData - dragstart event data
  */
-TimeResizeGuide.prototype._onDragStart = function(dragStartEventData) {
+TimeResizeGuide.prototype._onDragStartTop = function(dragStartEventData) {
     var originElement = domutil.closest(
             dragStartEventData.target,
             config.classname('.time-date-schedule-block')
@@ -162,6 +165,46 @@ TimeResizeGuide.prototype._onDragStart = function(dragStartEventData) {
  * @param {object} dragEventData - event data from Drag#drag.
  */
 TimeResizeGuide.prototype._onDrag = function(dragEventData) {
+    var timeView = dragEventData.relatedView,
+        viewOptions = timeView.options,
+        viewHeight = timeView.getViewBound().height,
+        hourLength = viewOptions.hourEnd - viewOptions.hourStart,
+        guideElement = this.guideElement,
+        guideTop = parseFloat(guideElement.style.top),
+        gridYOffset = dragEventData.nearestGridY - this._startGridY,
+        // hourLength : viewHeight = gridYOffset : X;
+        gridYOffsetPixel = ratio(hourLength, viewHeight, gridYOffset),
+        goingDuration = this._schedule.goingDuration,
+        modelDuration = this._schedule.duration() / datetime.MILLISECONDS_PER_MINUTES,
+        comingDuration = this._schedule.comingDuration,
+        minutesLength = hourLength * 60,
+        timeHeight,
+        timeMinHeight,
+        minHeight,
+        maxHeight,
+        height;
+
+    height = (this._startHeightPixel + gridYOffsetPixel);
+    // at least large than 30min from schedule start time.
+    minHeight = guideTop + ratio(hourLength, viewHeight, 0.5);
+    minHeight -= this._startTopPixel;
+    timeMinHeight = minHeight;
+    minHeight += ratio(minutesLength, viewHeight, goingDuration) + ratio(minutesLength, viewHeight, comingDuration);
+    // smaller than 24h
+    maxHeight = viewHeight - guideTop;
+
+    height = Math.max(height, minHeight);
+    height = Math.min(height, maxHeight);
+
+    timeHeight = ratio(minutesLength, viewHeight, modelDuration) + gridYOffsetPixel;
+
+    this._refreshGuideElement(height, timeMinHeight, timeHeight);
+};
+
+/**
+ * @param {object} dragEventData - event data from Drag#drag.
+ */
+TimeResizeGuide.prototype._onDragTop = function(dragEventData) {
     var timeView = dragEventData.relatedView,
         viewOptions = timeView.options,
         viewHeight = timeView.getViewBound().height,
