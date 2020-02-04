@@ -127,11 +127,19 @@ TimeResize.prototype._onDragStart = function(dragStartEventData) {
         }
     );
 
-    this.dragHandler.on({
-        drag: this._onDrag,
-        dragEnd: this._onDragEnd,
-        click: this._onClick
-    }, this);
+    if (isDraggingTop) {
+        this.dragHandler.on({
+            drag: this._onDragTop,
+            dragEnd: this._onDragEndTop,
+            click: this._onClickTop
+        }, this);
+    } else {
+        this.dragHandler.on({
+            drag: this._onDrag,
+            dragEnd: this._onDragEnd,
+            click: this._onClick
+        }, this);
+    }
 
     /**
      * @event TimeResize#timeResizeDragstart
@@ -188,6 +196,46 @@ TimeResize.prototype._onDrag = function(dragEventData, overrideEventName, revise
      * @property {string} targetModelID - The model unique id emitted move schedule.
      */
     this.fire(overrideEventName || 'timeResizeDrag', scheduleData);
+};
+
+/**
+ * Drag#drag event handler
+ * @emits TimeResize#timeResizeDrag
+ * @param {object} dragEventData - event data of Drag#drag custom event.
+ * @param {string} [overrideEventName] - override emitted event name when supplied.
+ * @param {function} [revise] - supply function for revise schedule data before emit.
+ */
+TimeResize.prototype._onDragTop = function(dragEventData, overrideEventName, revise) {
+    var getScheduleDataFunc = this._getScheduleDataFunc,
+        startScheduleData = this._dragStart,
+        scheduleData;
+
+    if (!getScheduleDataFunc || !startScheduleData) {
+        return;
+    }
+
+    scheduleData = getScheduleDataFunc(dragEventData.originEvent, {
+        targetModelID: startScheduleData.targetModelID
+    });
+
+    if (revise) {
+        revise(scheduleData);
+    }
+
+    /**
+     * @event TimeResize#timeResizeDrag
+     * @type {object}
+     * @property {HTMLElement} target - current target in mouse event object.
+     * @property {Time} relatedView - time view instance related with drag start position.
+     * @property {MouseEvent} originEvent - mouse event object.
+     * @property {number} mouseY - mouse Y px mouse event.
+     * @property {number} gridY - grid Y index value related with mouseY value.
+     * @property {number} timeY - milliseconds value of mouseY points.
+     * @property {number} nearestGridY - nearest grid index related with mouseY value.
+     * @property {number} nearestGridTimeY - time value for nearestGridY.
+     * @property {string} targetModelID - The model unique id emitted move schedule.
+     */
+    this.fire(overrideEventName || 'timeResizeDragTop', scheduleData);
 };
 
 /**
