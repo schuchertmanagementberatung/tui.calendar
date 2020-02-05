@@ -1,6 +1,6 @@
 /*!
  * TOAST UI Calendar
- * @version 1.12.10 | Tue Feb 04 2020
+ * @version 1.12.10 | Wed Feb 05 2020
  * @author NHN FE Development Lab <dl_javascript@nhn.com>
  * @license MIT
  */
@@ -17725,7 +17725,7 @@ TimeResizeGuide.prototype._onDragTop = function(dragEventData) {
     timeHeight = ratio(minutesLength, viewHeight, modelDuration) + gridYOffsetPixel;
 
     // eslint-disable-next-line max-len
-    this._refreshGuideElement(height + gridYOffsetPixel, timeMinHeight, timeHeight, this._startTopPixel + gridYOffsetPixel);
+    this._refreshGuideElement(height - (gridYOffsetPixel * 2), timeMinHeight, timeHeight, this._startTopPixel + gridYOffsetPixel);
 };
 
 module.exports = TimeResizeGuide;

@@ -242,7 +242,7 @@ TimeResizeGuide.prototype._onDragTop = function(dragEventData) {
     timeHeight = ratio(minutesLength, viewHeight, modelDuration) + gridYOffsetPixel;
 
     // eslint-disable-next-line max-len
-    this._refreshGuideElement(height + gridYOffsetPixel, timeMinHeight, timeHeight, this._startTopPixel + gridYOffsetPixel);
+    this._refreshGuideElement(height - (gridYOffsetPixel * 2), timeMinHeight, timeHeight, this._startTopPixel + gridYOffsetPixel);
 };
 
 module.exports = TimeResizeGuide;
