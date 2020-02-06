@@ -102,18 +102,27 @@ TimeResize.prototype._onDragStart = function(dragStartEventData) {
         timeView = this.checkExpectCondition(target),
         blockElement = domutil.closest(target, config.classname('.time-date-schedule-block')),
         ctrl = this.baseController,
-        blockElementBoundingClientRect = blockElement.getBoundingClientRect(),
-        blockElementTopY = blockElementBoundingClientRect.top,
-        blockElementBottomY = blockElementBoundingClientRect.top + blockElementBoundingClientRect.height,
-        blockElementDraggingTopThreshold = blockElementTopY + ((blockElementBottomY - blockElementTopY) / 2),
-        mouseStartY = dragStartEventData.originEvent.clientY,
-        isDraggingTop = mouseStartY <= blockElementDraggingTopThreshold,
+        blockElementBoundingClientRect,
+        blockElementTopY,
+        blockElementBottomY,
+        blockElementDraggingTopThreshold,
+        mouseStartY,
+        isDraggingTop,
         targetModelID,
         getScheduleDataFunc,
         scheduleData;
 
-    console.log('top', blockElementTopY, 'bottom', blockElementBottomY, 'mouseY', mouseStartY);
-    console.log('isdraggingtop', isDraggingTop);
+    if (blockElement) {
+        blockElementBoundingClientRect = blockElement.getBoundingClientRect();
+        blockElementTopY = blockElementBoundingClientRect.top;
+        blockElementBottomY = blockElementBoundingClientRect.top + blockElementBoundingClientRect.height;
+        blockElementDraggingTopThreshold = blockElementTopY + ((blockElementBottomY - blockElementTopY) / 2);
+        mouseStartY = dragStartEventData.originEvent.clientY;
+        isDraggingTop = mouseStartY <= blockElementDraggingTopThreshold;
+    }
+
+    // console.log('top', blockElementTopY, 'bottom', blockElementBottomY, 'mouseY', mouseStartY);
+    // console.log('isdraggingtop', isDraggingTop);
     if (!timeView || !blockElement) {
         return;
     }
