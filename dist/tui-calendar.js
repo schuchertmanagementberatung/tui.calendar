@@ -1,6 +1,6 @@
 /*!
  * TOAST UI Calendar
- * @version 1.12.10 | Wed Feb 05 2020
+ * @version 1.12.10 | Thu Feb 06 2020
  * @author NHN FE Development Lab <dl_javascript@nhn.com>
  * @license MIT
  */
@@ -9380,7 +9380,7 @@ Calendar.prototype._renderFunc = function() {
         this._layout.render();
     }
     if (this._scrollToNowMethod && this._requestScrollToNow) {
-        this._scrollToNowMethod();
+        // this._scrollToNowMethod();
     }
 
     this._requestScrollToNow = false;
@@ -9995,7 +9995,7 @@ Calendar.prototype.changeView = function(newViewName, force) {
     });
 
     this._refreshMethod = created.refresh;
-    this._scrollToNowMethod = created.scrollToNow;
+    // this._scrollToNowMethod = created.scrollToNow;
     this._openCreationPopup = created.openCreationPopup;
     this._showCreationPopup = created.showCreationPopup;
     this._hideMoreView = created.hideMoreView;
@@ -17228,7 +17228,7 @@ TimeResize.prototype._onDragStart = function(dragStartEventData) {
         this.dragHandler.on({
             drag: this._onDragTop,
             dragEnd: this._onDragEndTop,
-            click: this._onClickTop
+            click: this._onClick
         }, this);
     } else {
         this.dragHandler.on({
@@ -17359,7 +17359,9 @@ TimeResize.prototype._updateSchedule = function(scheduleData) {
     timeDiff -= datetime.millisecondsFrom('minutes', 30);
 
     baseDate = new TZDate(relatedView.getDate());
+    // dateStart = datetime.start(baseDate);
     dateEnd = datetime.end(baseDate);
+    // newStarts = new TZDate(schedule.getEnds()).addMilliseconds(timeDiff);
     newEnds = new TZDate(schedule.getEnds()).addMilliseconds(timeDiff);
 
     if (newEnds > dateEnd) {
@@ -17390,6 +17392,66 @@ TimeResize.prototype._updateSchedule = function(scheduleData) {
         changes: changes,
         start: schedule.getStarts(),
         end: newEnds
+    });
+};
+
+/**
+ * Update model instance by dragend event results.
+ * @fires TimeResize#beforeUpdateSchedule
+ * @param {object} scheduleData - schedule data from TimeResize#timeResizeDragend
+ */
+TimeResize.prototype._updateScheduleTop = function(scheduleData) {
+    var ctrl = this.baseController,
+        modelID = scheduleData.targetModelID,
+        range = scheduleData.nearestRange,
+        timeDiff = range[1] - range[0],
+        schedule = ctrl.schedules.items[modelID],
+        relatedView = scheduleData.relatedView,
+        // dateEnd,
+        newStarts,
+        baseDate;
+    var changes;
+
+    if (!schedule) {
+        return;
+    }
+
+    timeDiff -= datetime.millisecondsFrom('minutes', 30);
+
+    baseDate = new TZDate(relatedView.getDate());
+    // dateStart = datetime.start(baseDate);
+    // dateEnd = datetime.end(baseDate);
+    // newStarts = new TZDate(schedule.getEnds()).addMilliseconds(timeDiff);
+    newStarts = new TZDate(schedule.getStarts()).addMilliseconds(timeDiff);
+
+    if (newStarts < baseDate) {
+        newStarts = new TZDate(baseDate);
+    }
+
+    if (schedule.getEnds().getTime() - newStarts.getTime() < datetime.millisecondsFrom('minutes', 30)) {
+        newStarts = new TZDate(schedule.getEnds()).addMinutes(-30);
+    }
+
+    changes = common.getScheduleChanges(
+        schedule,
+        ['start'],
+        {start: newStarts}
+    );
+
+    /**
+     * @event TimeResize#beforeUpdateSchedule
+     * @type {object}
+     * @property {Schedule} schedule - The original schedule instance
+     * @property {Date} start - Deprecated: start time to update
+     * @property {Date} end - Deprecated: end time to update
+     * @property {object} changes - end time to update
+     *  @property {date} end - end time to update
+     */
+    this.fire('beforeUpdateSchedule', {
+        schedule: schedule,
+        changes: changes,
+        start: newStarts,
+        end: schedule.getEnds()
     });
 };
 
@@ -17427,7 +17489,67 @@ TimeResize.prototype._onDragEnd = function(dragEndEventData) {
         scheduleData.nearestGridTimeY.addMinutes(30)
     ];
 
+    console.log('update schedule with data (dragend):', scheduleData);
+
     this._updateSchedule(scheduleData);
+
+    /**
+     * @event TimeResize#timeResizeDragend
+     * @type {object}
+     * @property {HTMLElement} target - current target in mouse event object.
+     * @property {Time} relatedView - time view instance related with drag start position.
+     * @property {MouseEvent} originEvent - mouse event object.
+     * @property {number} mouseY - mouse Y px mouse event.
+     * @property {number} gridY - grid Y index value related with mouseY value.
+     * @property {number} timeY - milliseconds value of mouseY points.
+     * @property {number} nearestGridY - nearest grid index related with mouseY value.
+     * @property {number} nearestGridTimeY - time value for nearestGridY.
+     * @property {string} targetModelID - The model unique id emitted move schedule.
+     * @property {number[]} range - milliseconds range between drag start and end.
+     * @property {number[]} nearestRange - milliseconds range related with nearestGridY between start and end.
+     */
+    this.fire('timeResizeDragend', scheduleData);
+
+    this._getScheduleDataFunc = this._dragStart = null;
+};
+
+/**
+ * Drag#dragEnd event handler
+ * @emits TimeResize#timeResizeDragend
+ * @param {MouseEvent} dragEndEventData - Mouse event of Drag#dragEnd custom event.
+ */
+TimeResize.prototype._onDragEndTop = function(dragEndEventData) {
+    var getScheduleDataFunc = this._getScheduleDataFunc,
+        dragStart = this._dragStart,
+        scheduleData;
+
+    this.dragHandler.off({
+        drag: this._onDragTop,
+        dragEnd: this._onDragEnd,
+        click: this._onClick
+    }, this);
+
+    if (!getScheduleDataFunc || !dragStart) {
+        return;
+    }
+
+    scheduleData = getScheduleDataFunc(dragEndEventData.originEvent, {
+        targetModelID: dragStart.targetModelID
+    });
+
+    scheduleData.range = [
+        dragStart.timeY,
+        new TZDate(scheduleData.timeY).addMinutes(30)
+    ];
+
+    scheduleData.nearestRange = [
+        dragStart.nearestGridTimeY,
+        scheduleData.nearestGridTimeY.addMinutes(30)
+    ];
+
+    console.log('drag end top - scheduledata', scheduleData);
+
+    this._updateScheduleTop(scheduleData);
 
     /**
      * @event TimeResize#timeResizeDragend

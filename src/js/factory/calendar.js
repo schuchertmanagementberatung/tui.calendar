@@ -986,7 +986,7 @@ Calendar.prototype._renderFunc = function() {
         this._layout.render();
     }
     if (this._scrollToNowMethod && this._requestScrollToNow) {
-        this._scrollToNowMethod();
+        // this._scrollToNowMethod();
     }
 
     this._requestScrollToNow = false;
@@ -1601,7 +1601,7 @@ Calendar.prototype.changeView = function(newViewName, force) {
     });
 
     this._refreshMethod = created.refresh;
-    this._scrollToNowMethod = created.scrollToNow;
+    // this._scrollToNowMethod = created.scrollToNow;
     this._openCreationPopup = created.openCreationPopup;
     this._showCreationPopup = created.showCreationPopup;
     this._hideMoreView = created.hideMoreView;

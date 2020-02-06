@@ -1,6 +1,6 @@
 /*!
  * TOAST UI Calendar
- * @version 1.12.10 | Wed Feb 05 2020
+ * @version 1.12.10 | Thu Feb 06 2020
  * @author NHN FE Development Lab <dl_javascript@nhn.com>
  * @license MIT
  */
@@ -56,12 +56,10 @@
 .handle-x {
   background-position: center center;
   background-repeat: no-repeat;
-  background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAECAMAAACEE47CAAAACVBMVEX///////////+OSuX+AAAAA3RSTlMrQJG5H4EIAAAAEUlEQVR4AWNgYoRABhjEFAEAArQAIcHQcPsAAAAASUVORK5CYII=);
 }
 .handle-y {
   background-position: center center;
   background-repeat: no-repeat;
-  background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAICAMAAADp7a43AAAACVBMVEX///////////+OSuX+AAAAA3RSTlMrQJG5H4EIAAAAEUlEQVR4AWNgYmRiZABB/CwAAtgAIUTUNkMAAAAASUVORK5CYII=);
 }
 .resize-handle-bottom {
   bottom: 0px;
@@ -71,11 +69,9 @@
 }
 @media only screen and (-moz-min-device-pixel-ratio: 1.5), only screen and (-o-min-device-pixel-ratio: 3/2), only screen and (-webkit-min-device-pixel-ratio: 1.5), only screen and (min-devicepixel-ratio: 1.5), only screen and (min-resolution: 1.5dppx) {
   .handle-x {
-    background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAICAMAAADHqI+lAAAACVBMVEX///////////+OSuX+AAAAA3RSTlMZK5EY+QKaAAAAGUlEQVR4AWNgYmJAwegCIMDIiIwxBKhhBgAcSABh8gN42gAAAABJRU5ErkJggg==);
     background-size: 8px 4px;
   }
   .handle-y {
-    background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAQCAMAAAAcVM5PAAAACVBMVEX///////////+OSuX+AAAAA3RSTlMEK5EMBzK5AAAAGElEQVR4AWNgYmIAYxgDBBgZQRjOoKcaABzQAGGjsIM/AAAAAElFTkSuQmCC);
     background-size: 4px 8px;
   }
 }
