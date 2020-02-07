@@ -81,6 +81,7 @@ Weekday.prototype.getBaseViewModel = function(viewModel) {
     var exceedDate = viewModel.exceedDate || {};
     var theme = viewModel.theme;
     var now = new TZDate().toLocalTime();
+    console.log(viewModel);
 
     this._cacheParentViewModel = viewModel;
 
@@ -89,6 +90,7 @@ Weekday.prototype.getBaseViewModel = function(viewModel) {
         scheduleHeight: opt.scheduleHeight,
         scheduleBlockHeight: (opt.scheduleHeight + opt.scheduleGutter),
         scheduleBlockGutter: opt.scheduleGutter,
+        isMilestone: viewModel.schedulesInDateRange.milestone && viewModel.schedulesInDateRange.milestone.length > 0,
         dates: util.map(range, function(date, index) {
             var day = date.getDay();
             var ymd = datetime.format(new TZDate(date), 'YYYYMMDD');

@@ -690,7 +690,9 @@ Calendar.prototype._initialize = function(options) {
         timezones: options.timezones || [],
         disableDblClick: false,
         disableClick: false,
-        isReadOnly: false
+        isReadOnly: false,
+        isResizable: true,
+        isMovable: true
     }, options);
 
     if (this._options.isReadOnly) {

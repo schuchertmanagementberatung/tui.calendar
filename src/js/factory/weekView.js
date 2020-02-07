@@ -52,7 +52,7 @@ var DEFAULT_PANELS = [
         maxHeight: 80,
         showExpandableButton: true,
         maxExpandableHeight: 210,
-        handlers: ['click', 'resize'],
+        handlers: ['click', 'move'],
         show: true
     },
     {
@@ -267,6 +267,14 @@ module.exports = function(baseController, layoutContainer, dragHandler, options,
 
             if (options.isReadOnly) {
                 eventData.schedule = util.extend({}, eventData.schedule, {isReadOnly: true});
+            }
+
+            if (options.isResizable) {
+                eventData.schedule = util.extend({}, eventData.schedule, {isResizable: true});
+            }
+
+            if (options.isMovable) {
+                eventData.schedule = util.extend({}, eventData.schedule, {isMovable: true});
             }
 
             detailView.render(eventData);

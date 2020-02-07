@@ -64,6 +64,8 @@ function Month(options, container, controller) {
         visibleWeeksCount: null,
         isAlways6Week: true,
         isReadOnly: options.isReadOnly,
+        isResizable: options.isResizable,
+        isMovable: options.isMovable,
         grid: {
             header: {
                 height: 34
@@ -149,6 +151,8 @@ Month.prototype._renderChildren = function(container, calendar, theme) {
     var visibleScheduleCount = opt.visibleScheduleCount;
     var gridOption = opt.grid;
     var isReadOnly = opt.isReadOnly;
+    var isResizable = opt.isResizable;
+    var isMovable = opt.isMovable;
 
     container.innerHTML = '';
     this.children.clear();
@@ -174,7 +178,9 @@ Month.prototype._renderChildren = function(container, calendar, theme) {
             grid: gridOption,
             scheduleHeight: parseInt(theme.month.schedule.height, 10),
             scheduleGutter: parseInt(theme.month.schedule.marginTop, 10),
-            isReadOnly: isReadOnly
+            isReadOnly: isReadOnly,
+            isResizable: isResizable,
+            isMovable: isMovable
         }, weekdayViewContainer);
 
         self.addChild(weekdayView);

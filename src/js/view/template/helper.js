@@ -55,6 +55,26 @@ var helpers = {
     },
 
     /**
+     * NOT EQUAL
+     * @param {*} a - a
+     * @param {*} b - b
+     * @returns {boolean} or
+     */
+    'ne': function(a, b) {
+        return a !== b;
+    },
+
+    /**
+     * EQUAL
+     * @param {*} a - a
+     * @param {*} b - b
+     * @returns {boolean} or
+     */
+    'eq': function(a, b) {
+        return a === b;
+    },
+
+    /**
      * Compare object or apply logical operation by customizable oper parameter
      * @param {*} a - a
      * @param {string} oper - operator ex) '==', '<'

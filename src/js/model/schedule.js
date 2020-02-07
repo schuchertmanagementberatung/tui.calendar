@@ -148,6 +148,18 @@ function Schedule() {
     this.isReadOnly = false;
 
     /**
+     * resize schedule flag
+     * @type {boolean}
+     */
+    this.isResizable = true;
+
+    /**
+     * move schedule flag
+     * @type {boolean}
+     */
+    this.isMovable = true;
+
+    /**
      * private schedule
      * @type {boolean}
      */
@@ -255,6 +267,14 @@ Schedule.prototype.init = function(options) {
     this.isPending = options.isPending || false;
     this.isFocused = options.isFocused || false;
     this.isReadOnly = options.isReadOnly || false;
+    // eslint-disable-next-line no-undefined
+    this.isMovable = options.isMovable !== undefined
+        ? options.isMovable
+        : true;
+    // eslint-disable-next-line no-undefined
+    this.isResizable = options.isResizable !== undefined
+        ? options.isResizable
+        : true;
     this.goingDuration = options.goingDuration || 0;
     this.comingDuration = options.comingDuration || 0;
     this.state = options.state || '';

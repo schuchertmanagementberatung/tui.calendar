@@ -31,6 +31,8 @@ function ScheduleInfo() {
     this.isPending = false;
     this.isVisible = true;
     this.isReadOnly = false;
+    this.isMovable = true;
+    this.isResizable = true;
     this.goingDuration = 0;
     this.comingDuration = 0;
     this.recurrenceRule = '';
