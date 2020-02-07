@@ -1,6 +1,6 @@
 /*!
  * TOAST UI Calendar
- * @version 1.12.10 | Thu Feb 06 2020
+ * @version 1.12.10 | Fri Feb 07 2020
  * @author NHN FE Development Lab <dl_javascript@nhn.com>
  * @license MIT
  */
@@ -6248,6 +6248,14 @@ TZDate.prototype.getUTCTime = function() {
 };
 
 /**
+ * Get the day number of the month
+ * @returns {number} day
+ */
+TZDate.prototype.getDay = function() {
+    return this._date.getDate();
+};
+
+/**
  * toUTCString
  * @returns {string}
  */
@@ -6269,6 +6277,18 @@ TZDate.prototype.valueOf = function() {
 
 TZDate.prototype.addDate = function(day) {
     this.setDate(this.getDate() + day);
+
+    return this;
+};
+
+TZDate.prototype.setHours = function(hours) {
+    this._date.setHours(hours);
+
+    return this;
+};
+
+TZDate.prototype.setMinutes = function(minutes) {
+    this._date.setMinutes(minutes);
 
     return this;
 };
@@ -17381,6 +17401,10 @@ TimeResize.prototype._updateSchedule = function(scheduleData) {
         newEnds = new TZDate(schedule.getStarts()).addMinutes(30);
     }
 
+    if (newEnds.getTime() > new TZDate(baseDate).addDate(1)) {
+        newEnds = new TZDate(baseDate).addDate(1).addMinutes(-1);
+    }
+
     changes = common.getScheduleChanges(
         schedule,
         ['end'],
@@ -17439,6 +17463,10 @@ TimeResize.prototype._updateScheduleTop = function(scheduleData) {
 
     if (schedule.getEnds().getTime() - newStarts.getTime() < datetime.millisecondsFrom('minutes', 30)) {
         newStarts = new TZDate(schedule.getEnds()).addMinutes(-30);
+    }
+
+    if (newStarts.getTime() < baseDate.getTime()) {
+        newStarts = new TZDate(baseDate);
     }
 
     changes = common.getScheduleChanges(

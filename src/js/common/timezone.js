@@ -178,6 +178,14 @@ TZDate.prototype.getUTCTime = function() {
 };
 
 /**
+ * Get the day number of the month
+ * @returns {number} day
+ */
+TZDate.prototype.getDay = function() {
+    return this._date.getDate();
+};
+
+/**
  * toUTCString
  * @returns {string}
  */
@@ -199,6 +207,18 @@ TZDate.prototype.valueOf = function() {
 
 TZDate.prototype.addDate = function(day) {
     this.setDate(this.getDate() + day);
+
+    return this;
+};
+
+TZDate.prototype.setHours = function(hours) {
+    this._date.setHours(hours);
+
+    return this;
+};
+
+TZDate.prototype.setMinutes = function(minutes) {
+    this._date.setMinutes(minutes);
 
     return this;
 };

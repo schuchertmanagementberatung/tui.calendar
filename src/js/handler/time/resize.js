@@ -284,6 +284,10 @@ TimeResize.prototype._updateSchedule = function(scheduleData) {
         newEnds = new TZDate(schedule.getStarts()).addMinutes(30);
     }
 
+    if (newEnds.getTime() > new TZDate(baseDate).addDate(1)) {
+        newEnds = new TZDate(baseDate).addDate(1).addMinutes(-1);
+    }
+
     changes = common.getScheduleChanges(
         schedule,
         ['end'],
@@ -342,6 +346,10 @@ TimeResize.prototype._updateScheduleTop = function(scheduleData) {
 
     if (schedule.getEnds().getTime() - newStarts.getTime() < datetime.millisecondsFrom('minutes', 30)) {
         newStarts = new TZDate(schedule.getEnds()).addMinutes(-30);
+    }
+
+    if (newStarts.getTime() < baseDate.getTime()) {
+        newStarts = new TZDate(baseDate);
     }
 
     changes = common.getScheduleChanges(
