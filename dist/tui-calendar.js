@@ -12651,7 +12651,7 @@ DayGridResize.prototype._updateSchedule = function(scheduleData) {
         {end: newEnds}
     );
 
-    console.log('changes', changes);
+    // console.log('changes', changes);
 
     /**
      * @event DayGridResize#beforeUpdateSchedule
@@ -12697,7 +12697,7 @@ DayGridResize.prototype._onDragEnd = function(dragEndEventData, overrideEventNam
         targetModel: dragStart.model
     });
 
-    console.log('resize_ondragend', skipUpdate, scheduleData);
+    // console.log('resize_ondragend', skipUpdate, scheduleData);
 
     if (!skipUpdate) {
         this._updateSchedule(scheduleData);
@@ -17542,7 +17542,7 @@ TimeResize.prototype._onDragEnd = function(dragEndEventData) {
         scheduleData.nearestGridTimeY.addMinutes(30)
     ];
 
-    console.log('update schedule with data (dragend):', scheduleData);
+    // console.log('update schedule with data (dragend):', scheduleData);
 
     this._updateSchedule(scheduleData);
 
@@ -17578,7 +17578,7 @@ TimeResize.prototype._onDragEndTop = function(dragEndEventData) {
 
     this.dragHandler.off({
         drag: this._onDragTop,
-        dragEnd: this._onDragEnd,
+        dragEnd: this._onDragEndTop,
         click: this._onClick
     }, this);
 
@@ -17600,7 +17600,7 @@ TimeResize.prototype._onDragEndTop = function(dragEndEventData) {
         scheduleData.nearestGridTimeY.addMinutes(30)
     ];
 
-    console.log('drag end top - scheduledata', scheduleData);
+    // console.log('drag end top - scheduledata', scheduleData);
 
     this._updateScheduleTop(scheduleData);
 
@@ -17631,6 +17631,11 @@ TimeResize.prototype._onClick = function() {
     this.dragHandler.off({
         drag: this._onDrag,
         dragEnd: this._onDragEnd,
+        click: this._onClick
+    }, this);
+    this.dragHandler.off({
+        drag: this._onDragTop,
+        dragEnd: this._onDragEndTop,
         click: this._onClick
     }, this);
 
@@ -17859,6 +17864,8 @@ TimeResizeGuide.prototype._onDrag = function(dragEventData) {
 
     timeHeight = ratio(minutesLength, viewHeight, modelDuration) + gridYOffsetPixel;
 
+    console.log('ondrag', 'height', height, 'timeMinHeight', timeMinHeight, 'timeHeight', timeHeight);
+
     this._refreshGuideElement(height, timeMinHeight, timeHeight);
 };
 
@@ -17872,6 +17879,7 @@ TimeResizeGuide.prototype._onDragTop = function(dragEventData) {
         hourLength = viewOptions.hourEnd - viewOptions.hourStart,
         guideElement = this.guideElement,
         guideTop = parseFloat(guideElement.style.top),
+        guideBottom = guideTop + parseFloat(guideElement.clientHeight),
         gridYOffset = dragEventData.nearestGridY - this._startGridY,
         // hourLength : viewHeight = gridYOffset : X;
         gridYOffsetPixel = ratio(hourLength, viewHeight, gridYOffset),
@@ -17879,11 +17887,16 @@ TimeResizeGuide.prototype._onDragTop = function(dragEventData) {
         modelDuration = this._schedule.duration() / datetime.MILLISECONDS_PER_MINUTES,
         comingDuration = this._schedule.comingDuration,
         minutesLength = hourLength * 60,
+        maxGuideTop = guideBottom - ratio(hourLength, viewHeight, 0.5),
         timeHeight,
         timeMinHeight,
         minHeight,
         maxHeight,
         height;
+
+    if (guideTop > maxGuideTop) {
+        guideTop = maxGuideTop;
+    }
 
     height = (this._startHeightPixel + gridYOffsetPixel);
     // at least large than 30min from schedule start time.
@@ -17894,13 +17907,17 @@ TimeResizeGuide.prototype._onDragTop = function(dragEventData) {
     // smaller than 24h
     maxHeight = viewHeight - guideTop;
 
-    height = Math.max(height, minHeight);
+    height = height - (gridYOffsetPixel * 2);
+
+    // height = Math.max(height, minHeight);
     height = Math.min(height, maxHeight);
 
     timeHeight = ratio(minutesLength, viewHeight, modelDuration) + gridYOffsetPixel;
 
+    console.log('ondragtop', 'guideTop', guideTop, 'minHeight', minHeight, 'height', height, 'timeMinHeight', timeMinHeight, 'timeHeight', timeHeight, 'offsety', this._startTopPixel + gridYOffsetPixel, 'modelduration', modelDuration);
+
     // eslint-disable-next-line max-len
-    this._refreshGuideElement(height - (gridYOffsetPixel * 2), timeMinHeight, timeHeight, this._startTopPixel + gridYOffsetPixel);
+    this._refreshGuideElement(height, timeMinHeight, timeHeight, this._startTopPixel + gridYOffsetPixel);
 };
 
 module.exports = TimeResizeGuide;
@@ -26380,7 +26397,7 @@ Weekday.prototype.getBaseViewModel = function(viewModel) {
     var exceedDate = viewModel.exceedDate || {};
     var theme = viewModel.theme;
     var now = new TZDate().toLocalTime();
-    console.log(viewModel);
+    // console.log(viewModel);
 
     this._cacheParentViewModel = viewModel;
 

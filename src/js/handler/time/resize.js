@@ -409,7 +409,7 @@ TimeResize.prototype._onDragEnd = function(dragEndEventData) {
         scheduleData.nearestGridTimeY.addMinutes(30)
     ];
 
-    console.log('update schedule with data (dragend):', scheduleData);
+    // console.log('update schedule with data (dragend):', scheduleData);
 
     this._updateSchedule(scheduleData);
 
@@ -445,7 +445,7 @@ TimeResize.prototype._onDragEndTop = function(dragEndEventData) {
 
     this.dragHandler.off({
         drag: this._onDragTop,
-        dragEnd: this._onDragEnd,
+        dragEnd: this._onDragEndTop,
         click: this._onClick
     }, this);
 
@@ -467,7 +467,7 @@ TimeResize.prototype._onDragEndTop = function(dragEndEventData) {
         scheduleData.nearestGridTimeY.addMinutes(30)
     ];
 
-    console.log('drag end top - scheduledata', scheduleData);
+    // console.log('drag end top - scheduledata', scheduleData);
 
     this._updateScheduleTop(scheduleData);
 
@@ -498,6 +498,11 @@ TimeResize.prototype._onClick = function() {
     this.dragHandler.off({
         drag: this._onDrag,
         dragEnd: this._onDragEnd,
+        click: this._onClick
+    }, this);
+    this.dragHandler.off({
+        drag: this._onDragTop,
+        dragEnd: this._onDragEndTop,
         click: this._onClick
     }, this);
 

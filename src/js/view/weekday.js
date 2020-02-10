@@ -81,7 +81,7 @@ Weekday.prototype.getBaseViewModel = function(viewModel) {
     var exceedDate = viewModel.exceedDate || {};
     var theme = viewModel.theme;
     var now = new TZDate().toLocalTime();
-    console.log(viewModel);
+    // console.log(viewModel);
 
     this._cacheParentViewModel = viewModel;
 
