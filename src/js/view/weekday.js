@@ -90,7 +90,9 @@ Weekday.prototype.getBaseViewModel = function(viewModel) {
         scheduleHeight: opt.scheduleHeight,
         scheduleBlockHeight: (opt.scheduleHeight + opt.scheduleGutter),
         scheduleBlockGutter: opt.scheduleGutter,
-        isMilestone: viewModel.schedulesInDateRange.milestone && viewModel.schedulesInDateRange.milestone.length > 0,
+        isMilestone: viewModel.schedulesInDateRange
+            && viewModel.schedulesInDateRange.milestone
+            && viewModel.schedulesInDateRange.milestone.length > 0,
         dates: util.map(range, function(date, index) {
             var day = date.getDay();
             var ymd = datetime.format(new TZDate(date), 'YYYYMMDD');
