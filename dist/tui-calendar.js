@@ -1,6 +1,6 @@
 /*!
  * TOAST UI Calendar
- * @version 1.12.10 | Tue Feb 11 2020
+ * @version 1.12.10 | Thu Feb 13 2020
  * @author NHN FE Development Lab <dl_javascript@nhn.com>
  * @license MIT
  */
@@ -14963,6 +14963,10 @@ MonthMoveGuide.prototype._onDragStart = function(dragStartEvent) {
     this.layer = layer;
     layer.setSize(widthPercent + '%', height);
     layer.setPosition(mousePos[0], mousePos[1]);
+    console.log('MOVE GUIDE', util.extend(
+        Schedule.create(model),
+        model
+    ));
     layer.setContent(tmpl({
         model: util.extend(
             Schedule.create(model),
