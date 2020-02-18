@@ -42,6 +42,7 @@ function Time(options, container, theme) {
         minHeight: 18.5,
         isReadOnly: false,
         isResizable: true,
+        dataContext: null,
         isMovable: true
     }, options);
 

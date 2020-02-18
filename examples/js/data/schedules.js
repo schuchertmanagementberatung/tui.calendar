@@ -33,6 +33,7 @@ function ScheduleInfo() {
     this.isReadOnly = false;
     this.isMovable = true;
     this.isResizable = true;
+    this.dataContext = null;
     this.goingDuration = 0;
     this.comingDuration = 0;
     this.recurrenceRule = '';

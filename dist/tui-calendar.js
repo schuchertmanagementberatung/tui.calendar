@@ -1,6 +1,6 @@
 /*!
  * TOAST UI Calendar
- * @version 1.12.10 | Thu Feb 13 2020
+ * @version 1.12.10 | Tue Feb 18 2020
  * @author NHN FE Development Lab <dl_javascript@nhn.com>
  * @license MIT
  */
@@ -4286,6 +4286,7 @@ var domevent = {
      * @param {HTMLElement} el HTML element to prevent all event related with click.
      */
     disableClickPropagation: function(el) {
+        console.log('disableClickPropagation', el);
         domevent.on(el, DRAG.START.join(' ') + ' click dblclick', domevent.stopPropagation);
     },
 
@@ -4364,6 +4365,7 @@ var domevent = {
      */
     trigger: function(obj, type, eventData) {
         var rMouseEvent = /(mouse|click)/;
+        console.log('trigger', obj, type, eventData);
         if (util.isUndefined(eventData) && rMouseEvent.exec(type)) {
             eventData = domevent.mouseEvent(type);
         }
@@ -4456,6 +4458,7 @@ var domevent = {
             secondary = '2,6',
             wheel = '4';
 
+        console.log('getMouseButton', mouseEvent);
         /* istanbul ignore else */
         if (document.implementation.hasFeature('MouseEvents', '2.0')) {
             return mouseEvent.button;
@@ -18094,6 +18097,12 @@ function Schedule() {
     this.isResizable = true;
 
     /**
+     * schedule data context
+     * @type {any}
+     */
+    this.dataContext = null;
+
+    /**
      * move schedule flag
      * @type {boolean}
      */
@@ -18215,6 +18224,7 @@ Schedule.prototype.init = function(options) {
     this.isResizable = options.isResizable !== undefined
         ? options.isResizable
         : true;
+    this.dataContext = options.dataContext;
     this.goingDuration = options.goingDuration || 0;
     this.comingDuration = options.comingDuration || 0;
     this.state = options.state || '';
@@ -25114,6 +25124,7 @@ function Time(options, container, theme) {
         minHeight: 18.5,
         isReadOnly: false,
         isResizable: true,
+        dataContext: null,
         isMovable: true
     }, options);
 

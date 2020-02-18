@@ -154,6 +154,12 @@ function Schedule() {
     this.isResizable = true;
 
     /**
+     * schedule data context
+     * @type {any}
+     */
+    this.dataContext = null;
+
+    /**
      * move schedule flag
      * @type {boolean}
      */
@@ -275,6 +281,7 @@ Schedule.prototype.init = function(options) {
     this.isResizable = options.isResizable !== undefined
         ? options.isResizable
         : true;
+    this.dataContext = options.dataContext;
     this.goingDuration = options.goingDuration || 0;
     this.comingDuration = options.comingDuration || 0;
     this.state = options.state || '';
