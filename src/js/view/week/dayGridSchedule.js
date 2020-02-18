@@ -96,6 +96,7 @@ DayGridSchedule.prototype.getBaseViewModel = function(viewModel) {
         maxScheduleInDay: maxScheduleInDay,
         isReadOnly: opt.isReadOnly,
         isResizable: opt.isResizable,
+        dataContext: opt.dataContext,
         isMovable: opt.isMovable,
         styles: styles
     }, baseViewModel);

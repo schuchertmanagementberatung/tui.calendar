@@ -18100,7 +18100,8 @@ function Schedule() {
      * schedule data context
      * @type {any}
      */
-    this.dataContext = null;
+    // eslint-disable-next-line no-undefined
+    this.dataContext = undefined;
 
     /**
      * move schedule flag
@@ -19997,6 +19998,7 @@ WeekdayInMonth.prototype.getBaseViewModel = function(viewModel) {
         renderLimitIdx: renderLimitIdx,
         isReadOnly: opt.isReadOnly,
         isResizable: opt.isResizable,
+        dataContext: opt.dataContext,
         isMovable: opt.isMovable,
         styles: styles
     }, baseViewModel);
@@ -24857,6 +24859,7 @@ DayGridSchedule.prototype.getBaseViewModel = function(viewModel) {
         maxScheduleInDay: maxScheduleInDay,
         isReadOnly: opt.isReadOnly,
         isResizable: opt.isResizable,
+        dataContext: opt.dataContext,
         isMovable: opt.isMovable,
         styles: styles
     }, baseViewModel);
@@ -25124,7 +25127,8 @@ function Time(options, container, theme) {
         minHeight: 18.5,
         isReadOnly: false,
         isResizable: true,
-        dataContext: null,
+        // eslint-disable-next-line no-undefined
+        dataContext: undefined,
         isMovable: true
     }, options);
 

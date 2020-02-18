@@ -157,7 +157,8 @@ function Schedule() {
      * schedule data context
      * @type {any}
      */
-    this.dataContext = null;
+    // eslint-disable-next-line no-undefined
+    this.dataContext = undefined;
 
     /**
      * move schedule flag

@@ -42,7 +42,8 @@ function Time(options, container, theme) {
         minHeight: 18.5,
         isReadOnly: false,
         isResizable: true,
-        dataContext: null,
+        // eslint-disable-next-line no-undefined
+        dataContext: undefined,
         isMovable: true
     }, options);
 
