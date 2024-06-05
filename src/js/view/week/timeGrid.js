@@ -143,6 +143,8 @@ function TimeGrid(name, options, panelElement) {
         hourEnd: 24,
         timezones: options.timezones,
         isReadOnly: options.isReadOnly,
+        isResizable: options.isResizable,
+        isMovable: options.isMovable,
         showTimezoneCollapseButton: false
     }, options.week);
 
@@ -396,6 +398,8 @@ TimeGrid.prototype._renderChildren = function(viewModels, grids, container, them
             isPending: options.isPending,
             isFocused: options.isFocused,
             isReadOnly: options.isReadOnly,
+            isResizable: options.isResizable,
+            isMovable: options.isMovable,
             hourStart: options.hourStart,
             hourEnd: options.hourEnd
         };

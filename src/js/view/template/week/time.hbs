@@ -9,6 +9,8 @@
                     padding-left: {{@root.styles.paddingLeft}};
                 {{/fi}}
             ">
+            {{#unless (or croppedEnd @root.isReadOnly model.isReadOnly (ne @root.isResizable true) (ne model.isResizable true))}}<div class="{{CSS_PREFIX}}time-resize-handle resize-handle-top handle-x" style="margin-left: {{@root.styles.paddingLeft}};">&nbsp;</div>{{/unless}}
+
             <div data-schedule-id="{{model.id}}" data-calendar-id="{{model.calendarId}}" class="{{CSS_PREFIX}}time-schedule {{#if model.isFocused}}{{CSS_PREFIX}}time-schedule-focused {{/if}}"
                 style="
                 {{#unless croppedEnd}}
@@ -53,7 +55,7 @@
                 {{/if}};">{{{comingDuration-tmpl model}}}</div>
             {{/if}}
             </div>
-            {{#unless (or croppedEnd @root.isReadOnly model.isReadOnly)}}<div class="{{CSS_PREFIX}}time-resize-handle handle-x" style="margin-left: {{@root.styles.paddingLeft}};">&nbsp;</div>{{/unless}}
+            {{#unless (or croppedEnd @root.isReadOnly model.isReadOnly (ne @root.isResizable true) (ne model.isResizable true))}}<div class="{{CSS_PREFIX}}time-resize-handle resize-handle-bottom handle-x" style="margin-left: {{@root.styles.paddingLeft}};">&nbsp;</div>{{/unless}}
         </div>
         {{/if ~}}
         {{/each}}

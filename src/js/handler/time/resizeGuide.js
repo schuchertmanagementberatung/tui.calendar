@@ -60,6 +60,7 @@ function TimeResizeGuide(timeResize) {
     timeResize.on({
         'timeResizeDragstart': this._onDragStart,
         'timeResizeDrag': this._onDrag,
+        'timeResizeDragTop': this._onDragTop,
         'timeResizeDragend': this._clearGuideElement,
         'timeResizeClick': this._clearGuideElement
     }, this);
@@ -102,8 +103,9 @@ TimeResizeGuide.prototype._clearGuideElement = function() {
  * @param {number} guideHeight - guide element's style height.
  * @param {number} minTimeHeight - time element's min height
  * @param {number} timeHeight - time element's height.
+ * @param {number} offsetY - optional offset to change the y position on resizing on top
  */
-TimeResizeGuide.prototype._refreshGuideElement = function(guideHeight, minTimeHeight, timeHeight) {
+TimeResizeGuide.prototype._refreshGuideElement = function(guideHeight, minTimeHeight, timeHeight, offsetY) {
     var guideElement = this.guideElement;
     var timeElement;
 
@@ -116,8 +118,12 @@ TimeResizeGuide.prototype._refreshGuideElement = function(guideHeight, minTimeHe
     reqAnimFrame.requestAnimFrame(function() {
         guideElement.style.height = guideHeight + 'px';
         guideElement.style.display = 'block';
+        guideElement.style.top = offsetY + 'px';
 
         if (timeElement) {
+            // if (offsetY) {
+            //     timeElement.style.top = offsetY + 'px';
+            // }
             timeElement.style.height = timeHeight + 'px';
             timeElement.style.minHeight = minTimeHeight + 'px';
         }
@@ -195,7 +201,60 @@ TimeResizeGuide.prototype._onDrag = function(dragEventData) {
 
     timeHeight = ratio(minutesLength, viewHeight, modelDuration) + gridYOffsetPixel;
 
+    console.log('ondrag', 'height', height, 'timeMinHeight', timeMinHeight, 'timeHeight', timeHeight);
+
     this._refreshGuideElement(height, timeMinHeight, timeHeight);
+};
+
+/**
+ * @param {object} dragEventData - event data from Drag#drag.
+ */
+TimeResizeGuide.prototype._onDragTop = function(dragEventData) {
+    var timeView = dragEventData.relatedView,
+        viewOptions = timeView.options,
+        viewHeight = timeView.getViewBound().height,
+        hourLength = viewOptions.hourEnd - viewOptions.hourStart,
+        guideElement = this.guideElement,
+        guideTop = parseFloat(guideElement.style.top),
+        guideBottom = guideTop + parseFloat(guideElement.clientHeight),
+        gridYOffset = dragEventData.nearestGridY - this._startGridY,
+        // hourLength : viewHeight = gridYOffset : X;
+        gridYOffsetPixel = ratio(hourLength, viewHeight, gridYOffset),
+        goingDuration = this._schedule.goingDuration,
+        modelDuration = this._schedule.duration() / datetime.MILLISECONDS_PER_MINUTES,
+        comingDuration = this._schedule.comingDuration,
+        minutesLength = hourLength * 60,
+        maxGuideTop = guideBottom - ratio(hourLength, viewHeight, 0.5),
+        timeHeight,
+        timeMinHeight,
+        minHeight,
+        maxHeight,
+        height;
+
+    if (guideTop > maxGuideTop) {
+        guideTop = maxGuideTop;
+    }
+
+    height = (this._startHeightPixel + gridYOffsetPixel);
+    // at least large than 30min from schedule start time.
+    minHeight = guideTop + ratio(hourLength, viewHeight, 0.5);
+    minHeight -= this._startTopPixel;
+    timeMinHeight = minHeight;
+    minHeight += ratio(minutesLength, viewHeight, goingDuration) + ratio(minutesLength, viewHeight, comingDuration);
+    // smaller than 24h
+    maxHeight = viewHeight - guideTop;
+
+    height = height - (gridYOffsetPixel * 2);
+
+    // height = Math.max(height, minHeight);
+    height = Math.min(height, maxHeight);
+
+    timeHeight = ratio(minutesLength, viewHeight, modelDuration) + gridYOffsetPixel;
+
+    console.log('ondragtop', 'guideTop', guideTop, 'minHeight', minHeight, 'height', height, 'timeMinHeight', timeMinHeight, 'timeHeight', timeHeight, 'offsety', this._startTopPixel + gridYOffsetPixel, 'modelduration', modelDuration);
+
+    // eslint-disable-next-line max-len
+    this._refreshGuideElement(height, timeMinHeight, timeHeight, this._startTopPixel + gridYOffsetPixel);
 };
 
 module.exports = TimeResizeGuide;

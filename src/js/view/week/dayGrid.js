@@ -52,6 +52,8 @@ function DayGrid(name, options, container, theme) {
         scheduleContainerTop: 1,
         timezones: options.timezones,
         isReadOnly: options.isReadOnly,
+        isResizable: options.isResizable,
+        isMovable: options.isMovable,
         getViewModelFunc: function(viewModel) {
             return viewModel.schedulesInDateRange[name];
         },

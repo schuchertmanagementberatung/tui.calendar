@@ -138,6 +138,14 @@ function createMonthView(baseController, layoutContainer, dragHandler, options) 
                 eventData.schedule = util.extend({}, eventData.schedule, {isReadOnly: true});
             }
 
+            if (options.isResizable) {
+                eventData.schedule = util.extend({}, eventData.schedule, {isResizable: true});
+            }
+
+            if (options.isMovable) {
+                eventData.schedule = util.extend({}, eventData.schedule, {isMovable: true});
+            }
+
             detailView.render(eventData);
         };
         onDeleteSchedule = function(eventData) {
@@ -188,12 +196,18 @@ function createMonthView(baseController, layoutContainer, dragHandler, options) 
             creation: {
                 'default': creationHandler
             },
-            resize: {
-                'default': resizeHandler
-            },
-            move: {
-                'default': moveHandler
-            }
+            resize: options.isResizable
+                ? {
+                    'default': resizeHandler
+                }
+                // eslint-disable-next-line no-undefined
+                : undefined,
+            move: options.isMovable
+                ? {
+                    'default': moveHandler
+                }
+                // eslint-disable-next-line no-undefined
+                : undefined
         });
     }
 

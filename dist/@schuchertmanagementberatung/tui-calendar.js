@@ -1,6 +1,6 @@
 /*!
  * TOAST UI Calendar
- * @version 1.12.10 | Tue Feb 18 2020
+ * @version 1.12.10 | Mon Jan 27 2020
  * @author NHN FE Development Lab <dl_javascript@nhn.com>
  * @license MIT
  */
@@ -4286,7 +4286,6 @@ var domevent = {
      * @param {HTMLElement} el HTML element to prevent all event related with click.
      */
     disableClickPropagation: function(el) {
-        console.log('disableClickPropagation', el);
         domevent.on(el, DRAG.START.join(' ') + ' click dblclick', domevent.stopPropagation);
     },
 
@@ -4365,7 +4364,6 @@ var domevent = {
      */
     trigger: function(obj, type, eventData) {
         var rMouseEvent = /(mouse|click)/;
-        console.log('trigger', obj, type, eventData);
         if (util.isUndefined(eventData) && rMouseEvent.exec(type)) {
             eventData = domevent.mouseEvent(type);
         }
@@ -4458,7 +4456,6 @@ var domevent = {
             secondary = '2,6',
             wheel = '4';
 
-        console.log('getMouseButton', mouseEvent);
         /* istanbul ignore else */
         if (document.implementation.hasFeature('MouseEvents', '2.0')) {
             return mouseEvent.button;
@@ -6251,14 +6248,6 @@ TZDate.prototype.getUTCTime = function() {
 };
 
 /**
- * Get the day number of the month
- * @returns {number} day
- */
-TZDate.prototype.getDay = function() {
-    return this._date.getDate();
-};
-
-/**
  * toUTCString
  * @returns {string}
  */
@@ -6280,18 +6269,6 @@ TZDate.prototype.valueOf = function() {
 
 TZDate.prototype.addDate = function(day) {
     this.setDate(this.getDate() + day);
-
-    return this;
-};
-
-TZDate.prototype.setHours = function(hours) {
-    this._date.setHours(hours);
-
-    return this;
-};
-
-TZDate.prototype.setMinutes = function(minutes) {
-    this._date.setMinutes(minutes);
 
     return this;
 };
@@ -9107,9 +9084,7 @@ Calendar.prototype._initialize = function(options) {
         timezones: options.timezones || [],
         disableDblClick: false,
         disableClick: false,
-        isReadOnly: false,
-        isResizable: true,
-        isMovable: true
+        isReadOnly: false
     }, options);
 
     if (this._options.isReadOnly) {
@@ -9405,7 +9380,7 @@ Calendar.prototype._renderFunc = function() {
         this._layout.render();
     }
     if (this._scrollToNowMethod && this._requestScrollToNow) {
-        // this._scrollToNowMethod();
+        this._scrollToNowMethod();
     }
 
     this._requestScrollToNow = false;
@@ -10020,7 +9995,7 @@ Calendar.prototype.changeView = function(newViewName, force) {
     });
 
     this._refreshMethod = created.refresh;
-    // this._scrollToNowMethod = created.scrollToNow;
+    this._scrollToNowMethod = created.scrollToNow;
     this._openCreationPopup = created.openCreationPopup;
     this._showCreationPopup = created.showCreationPopup;
     this._hideMoreView = created.hideMoreView;
@@ -10516,14 +10491,6 @@ function createMonthView(baseController, layoutContainer, dragHandler, options) 
                 eventData.schedule = util.extend({}, eventData.schedule, {isReadOnly: true});
             }
 
-            if (options.isResizable) {
-                eventData.schedule = util.extend({}, eventData.schedule, {isResizable: true});
-            }
-
-            if (options.isMovable) {
-                eventData.schedule = util.extend({}, eventData.schedule, {isMovable: true});
-            }
-
             detailView.render(eventData);
         };
         onDeleteSchedule = function(eventData) {
@@ -10574,18 +10541,12 @@ function createMonthView(baseController, layoutContainer, dragHandler, options) 
             creation: {
                 'default': creationHandler
             },
-            resize: options.isResizable
-                ? {
-                    'default': resizeHandler
-                }
-                // eslint-disable-next-line no-undefined
-                : undefined,
-            move: options.isMovable
-                ? {
-                    'default': moveHandler
-                }
-                // eslint-disable-next-line no-undefined
-                : undefined
+            resize: {
+                'default': resizeHandler
+            },
+            move: {
+                'default': moveHandler
+            }
         });
     }
 
@@ -10715,7 +10676,7 @@ var DEFAULT_PANELS = [
         maxHeight: 80,
         showExpandableButton: true,
         maxExpandableHeight: 210,
-        handlers: ['click', 'move'],
+        handlers: ['click', 'resize'],
         show: true
     },
     {
@@ -10930,14 +10891,6 @@ module.exports = function(baseController, layoutContainer, dragHandler, options,
 
             if (options.isReadOnly) {
                 eventData.schedule = util.extend({}, eventData.schedule, {isReadOnly: true});
-            }
-
-            if (options.isResizable) {
-                eventData.schedule = util.extend({}, eventData.schedule, {isResizable: true});
-            }
-
-            if (options.isMovable) {
-                eventData.schedule = util.extend({}, eventData.schedule, {isMovable: true});
             }
 
             detailView.render(eventData);
@@ -12005,7 +11958,7 @@ DayGridMove.prototype._onDragStart = function(dragStartEventData) {
         return;
     }
 
-    if (targetModel.isReadOnly || !targetModel.isMovable) {
+    if (targetModel.isReadOnly) {
         return;
     }
 
@@ -12654,8 +12607,6 @@ DayGridResize.prototype._updateSchedule = function(scheduleData) {
         {end: newEnds}
     );
 
-    // console.log('changes', changes);
-
     /**
      * @event DayGridResize#beforeUpdateSchedule
      * @type {object}
@@ -12699,8 +12650,6 @@ DayGridResize.prototype._onDragEnd = function(dragEndEventData, overrideEventNam
     util.extend(scheduleData, {
         targetModel: dragStart.model
     });
-
-    // console.log('resize_ondragend', skipUpdate, scheduleData);
 
     if (!skipUpdate) {
         this._updateSchedule(scheduleData);
@@ -13894,10 +13843,14 @@ module.exports = (Handlebars['default'] || Handlebars).template({"1":function(co
     + ";background-color:"
     + alias4(((helper = (helper = lookupProperty(helpers,"bgColor") || (depth0 != null ? lookupProperty(depth0,"bgColor") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"bgColor","hash":{},"data":data,"loc":{"start":{"line":7,"column":74},"end":{"line":7,"column":85}}}) : helper)))
     + "\">\n        <div class=\""
-    + alias4(((helper = (helper = lookupProperty(helpers,"CSS_PREFIX") || (depth0 != null ? lookupProperty(depth0,"CSS_PREFIX") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"CSS_PREFIX","hash":{},"data":data,"loc":{"start":{"line":9,"column":20},"end":{"line":9,"column":34}}}) : helper)))
+    + alias4(((helper = (helper = lookupProperty(helpers,"CSS_PREFIX") || (depth0 != null ? lookupProperty(depth0,"CSS_PREFIX") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"CSS_PREFIX","hash":{},"data":data,"loc":{"start":{"line":8,"column":20},"end":{"line":8,"column":34}}}) : helper)))
     + "weekday-schedule-title\">\n"
-    + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"isAllDay") : depth0),{"name":"if","hash":{},"fn":container.program(4, data, 0),"inverse":container.program(6, data, 0),"data":data,"loc":{"start":{"line":10,"column":12},"end":{"line":14,"column":19}}})) != null ? stack1 : "")
-    + "        </div>\n    </div>\n";
+    + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"isAllDay") : depth0),{"name":"if","hash":{},"fn":container.program(4, data, 0),"inverse":container.program(6, data, 0),"data":data,"loc":{"start":{"line":9,"column":12},"end":{"line":13,"column":19}}})) != null ? stack1 : "")
+    + "        </div>\n        <div class=\""
+    + alias4(((helper = (helper = lookupProperty(helpers,"CSS_PREFIX") || (depth0 != null ? lookupProperty(depth0,"CSS_PREFIX") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"CSS_PREFIX","hash":{},"data":data,"loc":{"start":{"line":15,"column":20},"end":{"line":15,"column":34}}}) : helper)))
+    + "weekday-resize-handle handle-y\" style=\"line-height: "
+    + alias4(alias5(((stack1 = (depth0 != null ? lookupProperty(depth0,"styles") : depth0)) != null ? lookupProperty(stack1,"scheduleHeight") : stack1), depth0))
+    + ";\">&nbsp;</div>\n    </div>\n";
 },"4":function(container,depth0,helpers,partials,data) {
     var stack1, lookupProperty = container.lookupProperty || function(parent, propertyName) {
         if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
@@ -13907,7 +13860,7 @@ module.exports = (Handlebars['default'] || Handlebars).template({"1":function(co
     };
 
   return "                "
-    + ((stack1 = (lookupProperty(helpers,"allday-tmpl")||(depth0 && lookupProperty(depth0,"allday-tmpl"))||container.hooks.helperMissing).call(depth0 != null ? depth0 : (container.nullContext || {}),depth0,{"name":"allday-tmpl","hash":{},"data":data,"loc":{"start":{"line":11,"column":16},"end":{"line":11,"column":38}}})) != null ? stack1 : "")
+    + ((stack1 = (lookupProperty(helpers,"allday-tmpl")||(depth0 && lookupProperty(depth0,"allday-tmpl"))||container.hooks.helperMissing).call(depth0 != null ? depth0 : (container.nullContext || {}),depth0,{"name":"allday-tmpl","hash":{},"data":data,"loc":{"start":{"line":10,"column":16},"end":{"line":10,"column":38}}})) != null ? stack1 : "")
     + "\n";
 },"6":function(container,depth0,helpers,partials,data) {
     var stack1, lookupProperty = container.lookupProperty || function(parent, propertyName) {
@@ -13918,7 +13871,7 @@ module.exports = (Handlebars['default'] || Handlebars).template({"1":function(co
     };
 
   return "                "
-    + ((stack1 = (lookupProperty(helpers,"time-tmpl")||(depth0 && lookupProperty(depth0,"time-tmpl"))||container.hooks.helperMissing).call(depth0 != null ? depth0 : (container.nullContext || {}),depth0,{"name":"time-tmpl","hash":{},"data":data,"loc":{"start":{"line":13,"column":16},"end":{"line":13,"column":36}}})) != null ? stack1 : "")
+    + ((stack1 = (lookupProperty(helpers,"time-tmpl")||(depth0 && lookupProperty(depth0,"time-tmpl"))||container.hooks.helperMissing).call(depth0 != null ? depth0 : (container.nullContext || {}),depth0,{"name":"time-tmpl","hash":{},"data":data,"loc":{"start":{"line":12,"column":16},"end":{"line":12,"column":36}}})) != null ? stack1 : "")
     + "\n";
 },"compiler":[8,">= 4.3.0"],"main":function(container,depth0,helpers,partials,data) {
     var stack1, helper, alias1=depth0 != null ? depth0 : (container.nullContext || {}), alias2=container.hooks.helperMissing, alias3="function", alias4=container.escapeExpression, lookupProperty = container.lookupProperty || function(parent, propertyName) {
@@ -13935,7 +13888,7 @@ module.exports = (Handlebars['default'] || Handlebars).template({"1":function(co
     + ";height:"
     + alias4(((helper = (helper = lookupProperty(helpers,"height") || (depth0 != null ? lookupProperty(depth0,"height") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"height","hash":{},"data":data,"loc":{"start":{"line":1,"column":71},"end":{"line":1,"column":81}}}) : helper)))
     + ";display:none\">\n"
-    + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"isCreationMode") : depth0),{"name":"if","hash":{},"fn":container.program(1, data, 0),"inverse":container.program(3, data, 0),"data":data,"loc":{"start":{"line":2,"column":4},"end":{"line":18,"column":11}}})) != null ? stack1 : "")
+    + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"isCreationMode") : depth0),{"name":"if","hash":{},"fn":container.program(1, data, 0),"inverse":container.program(3, data, 0),"data":data,"loc":{"start":{"line":2,"column":4},"end":{"line":17,"column":11}}})) != null ? stack1 : "")
     + "</div>\n";
 },"useData":true});
 
@@ -14601,7 +14554,7 @@ MonthMove.prototype._onDragStart = function(dragStartEvent) {
         model = this.baseController.schedules.items[modelID],
         scheduleData;
 
-    if (!modelID || !model || model.isReadOnly || !model.isMovable || model.isPending) {
+    if (!modelID || !model || model.isReadOnly || model.isPending) {
         return;
     }
 
@@ -14966,10 +14919,6 @@ MonthMoveGuide.prototype._onDragStart = function(dragStartEvent) {
     this.layer = layer;
     layer.setSize(widthPercent + '%', height);
     layer.setPosition(mousePos[0], mousePos[1]);
-    console.log('MOVE GUIDE', util.extend(
-        Schedule.create(model),
-        model
-    ));
     layer.setContent(tmpl({
         model: util.extend(
             Schedule.create(model),
@@ -16635,7 +16584,7 @@ TimeMove.prototype._onDragStart = function(dragStartEventData) {
     targetModelID = domutil.getData(blockElement, 'id');
     targetModel = ctrl.schedules.items[targetModelID];
 
-    if (targetModel.isReadOnly || !targetModel.isMovable) {
+    if (targetModel.isReadOnly) {
         return;
     }
 
@@ -17242,27 +17191,10 @@ TimeResize.prototype._onDragStart = function(dragStartEventData) {
         timeView = this.checkExpectCondition(target),
         blockElement = domutil.closest(target, config.classname('.time-date-schedule-block')),
         ctrl = this.baseController,
-        blockElementBoundingClientRect,
-        blockElementTopY,
-        blockElementBottomY,
-        blockElementDraggingTopThreshold,
-        mouseStartY,
-        isDraggingTop,
         targetModelID,
         getScheduleDataFunc,
         scheduleData;
 
-    if (blockElement) {
-        blockElementBoundingClientRect = blockElement.getBoundingClientRect();
-        blockElementTopY = blockElementBoundingClientRect.top;
-        blockElementBottomY = blockElementBoundingClientRect.top + blockElementBoundingClientRect.height;
-        blockElementDraggingTopThreshold = blockElementTopY + ((blockElementBottomY - blockElementTopY) / 2);
-        mouseStartY = dragStartEventData.originEvent.clientY;
-        isDraggingTop = mouseStartY <= blockElementDraggingTopThreshold;
-    }
-
-    // console.log('top', blockElementTopY, 'bottom', blockElementBottomY, 'mouseY', mouseStartY);
-    // console.log('isdraggingtop', isDraggingTop);
     if (!timeView || !blockElement) {
         return;
     }
@@ -17276,19 +17208,11 @@ TimeResize.prototype._onDragStart = function(dragStartEventData) {
         }
     );
 
-    if (isDraggingTop) {
-        this.dragHandler.on({
-            drag: this._onDragTop,
-            dragEnd: this._onDragEndTop,
-            click: this._onClick
-        }, this);
-    } else {
-        this.dragHandler.on({
-            drag: this._onDrag,
-            dragEnd: this._onDragEnd,
-            click: this._onClick
-        }, this);
-    }
+    this.dragHandler.on({
+        drag: this._onDrag,
+        dragEnd: this._onDragEnd,
+        click: this._onClick
+    }, this);
 
     /**
      * @event TimeResize#timeResizeDragstart
@@ -17348,46 +17272,6 @@ TimeResize.prototype._onDrag = function(dragEventData, overrideEventName, revise
 };
 
 /**
- * Drag#drag event handler
- * @emits TimeResize#timeResizeDrag
- * @param {object} dragEventData - event data of Drag#drag custom event.
- * @param {string} [overrideEventName] - override emitted event name when supplied.
- * @param {function} [revise] - supply function for revise schedule data before emit.
- */
-TimeResize.prototype._onDragTop = function(dragEventData, overrideEventName, revise) {
-    var getScheduleDataFunc = this._getScheduleDataFunc,
-        startScheduleData = this._dragStart,
-        scheduleData;
-
-    if (!getScheduleDataFunc || !startScheduleData) {
-        return;
-    }
-
-    scheduleData = getScheduleDataFunc(dragEventData.originEvent, {
-        targetModelID: startScheduleData.targetModelID
-    });
-
-    if (revise) {
-        revise(scheduleData);
-    }
-
-    /**
-     * @event TimeResize#timeResizeDrag
-     * @type {object}
-     * @property {HTMLElement} target - current target in mouse event object.
-     * @property {Time} relatedView - time view instance related with drag start position.
-     * @property {MouseEvent} originEvent - mouse event object.
-     * @property {number} mouseY - mouse Y px mouse event.
-     * @property {number} gridY - grid Y index value related with mouseY value.
-     * @property {number} timeY - milliseconds value of mouseY points.
-     * @property {number} nearestGridY - nearest grid index related with mouseY value.
-     * @property {number} nearestGridTimeY - time value for nearestGridY.
-     * @property {string} targetModelID - The model unique id emitted move schedule.
-     */
-    this.fire(overrideEventName || 'timeResizeDragTop', scheduleData);
-};
-
-/**
  * Update model instance by dragend event results.
  * @fires TimeResize#beforeUpdateSchedule
  * @param {object} scheduleData - schedule data from TimeResize#timeResizeDragend
@@ -17411,9 +17295,7 @@ TimeResize.prototype._updateSchedule = function(scheduleData) {
     timeDiff -= datetime.millisecondsFrom('minutes', 30);
 
     baseDate = new TZDate(relatedView.getDate());
-    // dateStart = datetime.start(baseDate);
     dateEnd = datetime.end(baseDate);
-    // newStarts = new TZDate(schedule.getEnds()).addMilliseconds(timeDiff);
     newEnds = new TZDate(schedule.getEnds()).addMilliseconds(timeDiff);
 
     if (newEnds > dateEnd) {
@@ -17422,10 +17304,6 @@ TimeResize.prototype._updateSchedule = function(scheduleData) {
 
     if (newEnds.getTime() - schedule.getStarts().getTime() < datetime.millisecondsFrom('minutes', 30)) {
         newEnds = new TZDate(schedule.getStarts()).addMinutes(30);
-    }
-
-    if (newEnds.getTime() > new TZDate(baseDate).addDate(1)) {
-        newEnds = new TZDate(baseDate).addDate(1).addMinutes(-1);
     }
 
     changes = common.getScheduleChanges(
@@ -17448,70 +17326,6 @@ TimeResize.prototype._updateSchedule = function(scheduleData) {
         changes: changes,
         start: schedule.getStarts(),
         end: newEnds
-    });
-};
-
-/**
- * Update model instance by dragend event results.
- * @fires TimeResize#beforeUpdateSchedule
- * @param {object} scheduleData - schedule data from TimeResize#timeResizeDragend
- */
-TimeResize.prototype._updateScheduleTop = function(scheduleData) {
-    var ctrl = this.baseController,
-        modelID = scheduleData.targetModelID,
-        range = scheduleData.nearestRange,
-        timeDiff = range[1] - range[0],
-        schedule = ctrl.schedules.items[modelID],
-        relatedView = scheduleData.relatedView,
-        // dateEnd,
-        newStarts,
-        baseDate;
-    var changes;
-
-    if (!schedule) {
-        return;
-    }
-
-    timeDiff -= datetime.millisecondsFrom('minutes', 30);
-
-    baseDate = new TZDate(relatedView.getDate());
-    // dateStart = datetime.start(baseDate);
-    // dateEnd = datetime.end(baseDate);
-    // newStarts = new TZDate(schedule.getEnds()).addMilliseconds(timeDiff);
-    newStarts = new TZDate(schedule.getStarts()).addMilliseconds(timeDiff);
-
-    if (newStarts < baseDate) {
-        newStarts = new TZDate(baseDate);
-    }
-
-    if (schedule.getEnds().getTime() - newStarts.getTime() < datetime.millisecondsFrom('minutes', 30)) {
-        newStarts = new TZDate(schedule.getEnds()).addMinutes(-30);
-    }
-
-    if (newStarts.getTime() < baseDate.getTime()) {
-        newStarts = new TZDate(baseDate);
-    }
-
-    changes = common.getScheduleChanges(
-        schedule,
-        ['start'],
-        {start: newStarts}
-    );
-
-    /**
-     * @event TimeResize#beforeUpdateSchedule
-     * @type {object}
-     * @property {Schedule} schedule - The original schedule instance
-     * @property {Date} start - Deprecated: start time to update
-     * @property {Date} end - Deprecated: end time to update
-     * @property {object} changes - end time to update
-     *  @property {date} end - end time to update
-     */
-    this.fire('beforeUpdateSchedule', {
-        schedule: schedule,
-        changes: changes,
-        start: newStarts,
-        end: schedule.getEnds()
     });
 };
 
@@ -17549,67 +17363,7 @@ TimeResize.prototype._onDragEnd = function(dragEndEventData) {
         scheduleData.nearestGridTimeY.addMinutes(30)
     ];
 
-    // console.log('update schedule with data (dragend):', scheduleData);
-
     this._updateSchedule(scheduleData);
-
-    /**
-     * @event TimeResize#timeResizeDragend
-     * @type {object}
-     * @property {HTMLElement} target - current target in mouse event object.
-     * @property {Time} relatedView - time view instance related with drag start position.
-     * @property {MouseEvent} originEvent - mouse event object.
-     * @property {number} mouseY - mouse Y px mouse event.
-     * @property {number} gridY - grid Y index value related with mouseY value.
-     * @property {number} timeY - milliseconds value of mouseY points.
-     * @property {number} nearestGridY - nearest grid index related with mouseY value.
-     * @property {number} nearestGridTimeY - time value for nearestGridY.
-     * @property {string} targetModelID - The model unique id emitted move schedule.
-     * @property {number[]} range - milliseconds range between drag start and end.
-     * @property {number[]} nearestRange - milliseconds range related with nearestGridY between start and end.
-     */
-    this.fire('timeResizeDragend', scheduleData);
-
-    this._getScheduleDataFunc = this._dragStart = null;
-};
-
-/**
- * Drag#dragEnd event handler
- * @emits TimeResize#timeResizeDragend
- * @param {MouseEvent} dragEndEventData - Mouse event of Drag#dragEnd custom event.
- */
-TimeResize.prototype._onDragEndTop = function(dragEndEventData) {
-    var getScheduleDataFunc = this._getScheduleDataFunc,
-        dragStart = this._dragStart,
-        scheduleData;
-
-    this.dragHandler.off({
-        drag: this._onDragTop,
-        dragEnd: this._onDragEndTop,
-        click: this._onClick
-    }, this);
-
-    if (!getScheduleDataFunc || !dragStart) {
-        return;
-    }
-
-    scheduleData = getScheduleDataFunc(dragEndEventData.originEvent, {
-        targetModelID: dragStart.targetModelID
-    });
-
-    scheduleData.range = [
-        dragStart.timeY,
-        new TZDate(scheduleData.timeY).addMinutes(30)
-    ];
-
-    scheduleData.nearestRange = [
-        dragStart.nearestGridTimeY,
-        scheduleData.nearestGridTimeY.addMinutes(30)
-    ];
-
-    // console.log('drag end top - scheduledata', scheduleData);
-
-    this._updateScheduleTop(scheduleData);
 
     /**
      * @event TimeResize#timeResizeDragend
@@ -17638,11 +17392,6 @@ TimeResize.prototype._onClick = function() {
     this.dragHandler.off({
         drag: this._onDrag,
         dragEnd: this._onDragEnd,
-        click: this._onClick
-    }, this);
-    this.dragHandler.off({
-        drag: this._onDragTop,
-        dragEnd: this._onDragEndTop,
         click: this._onClick
     }, this);
 
@@ -17730,7 +17479,6 @@ function TimeResizeGuide(timeResize) {
     timeResize.on({
         'timeResizeDragstart': this._onDragStart,
         'timeResizeDrag': this._onDrag,
-        'timeResizeDragTop': this._onDragTop,
         'timeResizeDragend': this._clearGuideElement,
         'timeResizeClick': this._clearGuideElement
     }, this);
@@ -17773,9 +17521,8 @@ TimeResizeGuide.prototype._clearGuideElement = function() {
  * @param {number} guideHeight - guide element's style height.
  * @param {number} minTimeHeight - time element's min height
  * @param {number} timeHeight - time element's height.
- * @param {number} offsetY - optional offset to change the y position on resizing on top
  */
-TimeResizeGuide.prototype._refreshGuideElement = function(guideHeight, minTimeHeight, timeHeight, offsetY) {
+TimeResizeGuide.prototype._refreshGuideElement = function(guideHeight, minTimeHeight, timeHeight) {
     var guideElement = this.guideElement;
     var timeElement;
 
@@ -17788,12 +17535,8 @@ TimeResizeGuide.prototype._refreshGuideElement = function(guideHeight, minTimeHe
     reqAnimFrame.requestAnimFrame(function() {
         guideElement.style.height = guideHeight + 'px';
         guideElement.style.display = 'block';
-        guideElement.style.top = offsetY + 'px';
 
         if (timeElement) {
-            // if (offsetY) {
-            //     timeElement.style.top = offsetY + 'px';
-            // }
             timeElement.style.height = timeHeight + 'px';
             timeElement.style.minHeight = minTimeHeight + 'px';
         }
@@ -17871,60 +17614,7 @@ TimeResizeGuide.prototype._onDrag = function(dragEventData) {
 
     timeHeight = ratio(minutesLength, viewHeight, modelDuration) + gridYOffsetPixel;
 
-    console.log('ondrag', 'height', height, 'timeMinHeight', timeMinHeight, 'timeHeight', timeHeight);
-
     this._refreshGuideElement(height, timeMinHeight, timeHeight);
-};
-
-/**
- * @param {object} dragEventData - event data from Drag#drag.
- */
-TimeResizeGuide.prototype._onDragTop = function(dragEventData) {
-    var timeView = dragEventData.relatedView,
-        viewOptions = timeView.options,
-        viewHeight = timeView.getViewBound().height,
-        hourLength = viewOptions.hourEnd - viewOptions.hourStart,
-        guideElement = this.guideElement,
-        guideTop = parseFloat(guideElement.style.top),
-        guideBottom = guideTop + parseFloat(guideElement.clientHeight),
-        gridYOffset = dragEventData.nearestGridY - this._startGridY,
-        // hourLength : viewHeight = gridYOffset : X;
-        gridYOffsetPixel = ratio(hourLength, viewHeight, gridYOffset),
-        goingDuration = this._schedule.goingDuration,
-        modelDuration = this._schedule.duration() / datetime.MILLISECONDS_PER_MINUTES,
-        comingDuration = this._schedule.comingDuration,
-        minutesLength = hourLength * 60,
-        maxGuideTop = guideBottom - ratio(hourLength, viewHeight, 0.5),
-        timeHeight,
-        timeMinHeight,
-        minHeight,
-        maxHeight,
-        height;
-
-    if (guideTop > maxGuideTop) {
-        guideTop = maxGuideTop;
-    }
-
-    height = (this._startHeightPixel + gridYOffsetPixel);
-    // at least large than 30min from schedule start time.
-    minHeight = guideTop + ratio(hourLength, viewHeight, 0.5);
-    minHeight -= this._startTopPixel;
-    timeMinHeight = minHeight;
-    minHeight += ratio(minutesLength, viewHeight, goingDuration) + ratio(minutesLength, viewHeight, comingDuration);
-    // smaller than 24h
-    maxHeight = viewHeight - guideTop;
-
-    height = height - (gridYOffsetPixel * 2);
-
-    // height = Math.max(height, minHeight);
-    height = Math.min(height, maxHeight);
-
-    timeHeight = ratio(minutesLength, viewHeight, modelDuration) + gridYOffsetPixel;
-
-    console.log('ondragtop', 'guideTop', guideTop, 'minHeight', minHeight, 'height', height, 'timeMinHeight', timeMinHeight, 'timeHeight', timeHeight, 'offsety', this._startTopPixel + gridYOffsetPixel, 'modelduration', modelDuration);
-
-    // eslint-disable-next-line max-len
-    this._refreshGuideElement(height, timeMinHeight, timeHeight, this._startTopPixel + gridYOffsetPixel);
 };
 
 module.exports = TimeResizeGuide;
@@ -18091,25 +17781,6 @@ function Schedule() {
     this.isReadOnly = false;
 
     /**
-     * resize schedule flag
-     * @type {boolean}
-     */
-    this.isResizable = true;
-
-    /**
-     * schedule data context
-     * @type {any}
-     */
-    // eslint-disable-next-line no-undefined
-    this.dataContext = undefined;
-
-    /**
-     * move schedule flag
-     * @type {boolean}
-     */
-    this.isMovable = true;
-
-    /**
      * private schedule
      * @type {boolean}
      */
@@ -18217,15 +17888,6 @@ Schedule.prototype.init = function(options) {
     this.isPending = options.isPending || false;
     this.isFocused = options.isFocused || false;
     this.isReadOnly = options.isReadOnly || false;
-    // eslint-disable-next-line no-undefined
-    this.isMovable = options.isMovable !== undefined
-        ? options.isMovable
-        : true;
-    // eslint-disable-next-line no-undefined
-    this.isResizable = options.isResizable !== undefined
-        ? options.isResizable
-        : true;
-    this.dataContext = options.dataContext;
     this.goingDuration = options.goingDuration || 0;
     this.comingDuration = options.comingDuration || 0;
     this.state = options.state || '';
@@ -19309,8 +18971,6 @@ function Month(options, container, controller) {
         visibleWeeksCount: null,
         isAlways6Week: true,
         isReadOnly: options.isReadOnly,
-        isResizable: options.isResizable,
-        isMovable: options.isMovable,
         grid: {
             header: {
                 height: 34
@@ -19396,8 +19056,6 @@ Month.prototype._renderChildren = function(container, calendar, theme) {
     var visibleScheduleCount = opt.visibleScheduleCount;
     var gridOption = opt.grid;
     var isReadOnly = opt.isReadOnly;
-    var isResizable = opt.isResizable;
-    var isMovable = opt.isMovable;
 
     container.innerHTML = '';
     this.children.clear();
@@ -19423,9 +19081,7 @@ Month.prototype._renderChildren = function(container, calendar, theme) {
             grid: gridOption,
             scheduleHeight: parseInt(theme.month.schedule.height, 10),
             scheduleGutter: parseInt(theme.month.schedule.marginTop, 10),
-            isReadOnly: isReadOnly,
-            isResizable: isResizable,
-            isMovable: isMovable
+            isReadOnly: isReadOnly
         }, weekdayViewContainer);
 
         self.addChild(weekdayView);
@@ -19997,9 +19653,6 @@ WeekdayInMonth.prototype.getBaseViewModel = function(viewModel) {
         gridFooterHeight: gridFooterHeight,
         renderLimitIdx: renderLimitIdx,
         isReadOnly: opt.isReadOnly,
-        isResizable: opt.isResizable,
-        dataContext: opt.dataContext,
-        isMovable: opt.isMovable,
         styles: styles
     }, baseViewModel);
 
@@ -21057,26 +20710,6 @@ var helpers = {
      */
     'and': function(a, b) {
         return a && b;
-    },
-
-    /**
-     * NOT EQUAL
-     * @param {*} a - a
-     * @param {*} b - b
-     * @returns {boolean} or
-     */
-    'ne': function(a, b) {
-        return a !== b;
-    },
-
-    /**
-     * EQUAL
-     * @param {*} a - a
-     * @param {*} b - b
-     * @returns {boolean} or
-     */
-    'eq': function(a, b) {
-        return a === b;
     },
 
     /**
@@ -22198,7 +21831,7 @@ module.exports = (Handlebars['default'] || Handlebars).template({"1":function(co
     + "\">"
     + ((stack1 = (lookupProperty(helpers,"allday-tmpl")||(depth0 && lookupProperty(depth0,"allday-tmpl"))||alias4).call(alias3,(depth0 != null ? lookupProperty(depth0,"model") : depth0),{"name":"allday-tmpl","hash":{},"data":data,"loc":{"start":{"line":29,"column":47},"end":{"line":29,"column":70}}})) != null ? stack1 : "")
     + "</span>\n            "
-    + ((stack1 = lookupProperty(helpers,"unless").call(alias3,(lookupProperty(helpers,"or")||(depth0 && lookupProperty(depth0,"or"))||alias4).call(alias3,(lookupProperty(helpers,"or")||(depth0 && lookupProperty(depth0,"or"))||alias4).call(alias3,((stack1 = (data && lookupProperty(data,"root"))) && lookupProperty(stack1,"isReadOnly")),((stack1 = (depth0 != null ? lookupProperty(depth0,"model") : depth0)) != null ? lookupProperty(stack1,"isReadOnly") : stack1),{"name":"or","hash":{},"data":data,"loc":{"start":{"line":30,"column":26},"end":{"line":30,"column":64}}}),(lookupProperty(helpers,"or")||(depth0 && lookupProperty(depth0,"or"))||alias4).call(alias3,(lookupProperty(helpers,"ne")||(depth0 && lookupProperty(depth0,"ne"))||alias4).call(alias3,((stack1 = (data && lookupProperty(data,"root"))) && lookupProperty(stack1,"isResizable")),true,{"name":"ne","hash":{},"data":data,"loc":{"start":{"line":30,"column":69},"end":{"line":30,"column":96}}}),(lookupProperty(helpers,"ne")||(depth0 && lookupProperty(depth0,"ne"))||alias4).call(alias3,((stack1 = (depth0 != null ? lookupProperty(depth0,"model") : depth0)) != null ? lookupProperty(stack1,"isResizable") : stack1),true,{"name":"ne","hash":{},"data":data,"loc":{"start":{"line":30,"column":97},"end":{"line":30,"column":124}}}),{"name":"or","hash":{},"data":data,"loc":{"start":{"line":30,"column":65},"end":{"line":30,"column":125}}}),{"name":"or","hash":{},"data":data,"loc":{"start":{"line":30,"column":22},"end":{"line":30,"column":126}}}),{"name":"unless","hash":{},"fn":container.program(21, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":30,"column":12},"end":{"line":30,"column":260}}})) != null ? stack1 : "")
+    + ((stack1 = lookupProperty(helpers,"unless").call(alias3,(lookupProperty(helpers,"or")||(depth0 && lookupProperty(depth0,"or"))||alias4).call(alias3,((stack1 = (data && lookupProperty(data,"root"))) && lookupProperty(stack1,"isReadOnly")),((stack1 = (depth0 != null ? lookupProperty(depth0,"model") : depth0)) != null ? lookupProperty(stack1,"isReadOnly") : stack1),{"name":"or","hash":{},"data":data,"loc":{"start":{"line":30,"column":22},"end":{"line":30,"column":60}}}),{"name":"unless","hash":{},"fn":container.program(21, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":30,"column":12},"end":{"line":30,"column":194}}})) != null ? stack1 : "")
     + "\n        </div>\n";
 },"11":function(container,depth0,helpers,partials,data) {
     var helper, lookupProperty = container.lookupProperty || function(parent, propertyName) {
@@ -22269,7 +21902,7 @@ module.exports = (Handlebars['default'] || Handlebars).template({"1":function(co
     };
 
   return "<span class=\""
-    + alias1(((helper = (helper = lookupProperty(helpers,"CSS_PREFIX") || (depth0 != null ? lookupProperty(depth0,"CSS_PREFIX") : depth0)) != null ? helper : container.hooks.helperMissing),(typeof helper === "function" ? helper.call(depth0 != null ? depth0 : (container.nullContext || {}),{"name":"CSS_PREFIX","hash":{},"data":data,"loc":{"start":{"line":30,"column":141},"end":{"line":30,"column":155}}}) : helper)))
+    + alias1(((helper = (helper = lookupProperty(helpers,"CSS_PREFIX") || (depth0 != null ? lookupProperty(depth0,"CSS_PREFIX") : depth0)) != null ? helper : container.hooks.helperMissing),(typeof helper === "function" ? helper.call(depth0 != null ? depth0 : (container.nullContext || {}),{"name":"CSS_PREFIX","hash":{},"data":data,"loc":{"start":{"line":30,"column":75},"end":{"line":30,"column":89}}}) : helper)))
     + "weekday-resize-handle handle-y\" style=\"line-height: "
     + alias1(container.lambda(((stack1 = (data && lookupProperty(data,"root"))) && lookupProperty(stack1,"scheduleHeight")), depth0))
     + "px;\">&nbsp;</span>";
@@ -23167,7 +22800,7 @@ module.exports = (Handlebars['default'] || Handlebars).template({"1":function(co
         return undefined
     };
 
-  return ((stack1 = lookupProperty(helpers,"each").call(depth0 != null ? depth0 : (container.nullContext || {}),depth0,{"name":"each","hash":{},"fn":container.program(2, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":3,"column":4},"end":{"line":28,"column":15}}})) != null ? stack1 : "");
+  return ((stack1 = lookupProperty(helpers,"each").call(depth0 != null ? depth0 : (container.nullContext || {}),depth0,{"name":"each","hash":{},"fn":container.program(2, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":3,"column":4},"end":{"line":27,"column":15}}})) != null ? stack1 : "");
 },"2":function(container,depth0,helpers,partials,data) {
     var stack1, lookupProperty = container.lookupProperty || function(parent, propertyName) {
         if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
@@ -23177,7 +22810,7 @@ module.exports = (Handlebars['default'] || Handlebars).template({"1":function(co
     };
 
   return "\n    "
-    + ((stack1 = lookupProperty(helpers,"each").call(depth0 != null ? depth0 : (container.nullContext || {}),depth0,{"name":"each","hash":{},"fn":container.program(3, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":4,"column":4},"end":{"line":27,"column":15}}})) != null ? stack1 : "");
+    + ((stack1 = lookupProperty(helpers,"each").call(depth0 != null ? depth0 : (container.nullContext || {}),depth0,{"name":"each","hash":{},"fn":container.program(3, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":4,"column":4},"end":{"line":26,"column":15}}})) != null ? stack1 : "");
 },"3":function(container,depth0,helpers,partials,data) {
     var stack1, lookupProperty = container.lookupProperty || function(parent, propertyName) {
         if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
@@ -23187,7 +22820,7 @@ module.exports = (Handlebars['default'] || Handlebars).template({"1":function(co
     };
 
   return "\n    "
-    + ((stack1 = lookupProperty(helpers,"if").call(depth0 != null ? depth0 : (container.nullContext || {}),depth0,{"name":"if","hash":{},"fn":container.program(4, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":5,"column":4},"end":{"line":26,"column":13}}})) != null ? stack1 : "");
+    + ((stack1 = lookupProperty(helpers,"if").call(depth0 != null ? depth0 : (container.nullContext || {}),depth0,{"name":"if","hash":{},"fn":container.program(4, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":5,"column":4},"end":{"line":25,"column":13}}})) != null ? stack1 : "");
 },"4":function(container,depth0,helpers,partials,data) {
     var stack1, helper, alias1=depth0 != null ? depth0 : (container.nullContext || {}), alias2=container.hooks.helperMissing, alias3=container.escapeExpression, alias4="function", alias5=container.lambda, lookupProperty = container.lookupProperty || function(parent, propertyName) {
         if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
@@ -23228,14 +22861,14 @@ module.exports = (Handlebars['default'] || Handlebars).template({"1":function(co
     + ((stack1 = lookupProperty(helpers,"if").call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"model") : depth0)) != null ? lookupProperty(stack1,"isFocused") : stack1),{"name":"if","hash":{},"fn":container.program(11, data, 0),"inverse":container.program(13, data, 0),"data":data,"loc":{"start":{"line":15,"column":16},"end":{"line":19,"column":23}}})) != null ? stack1 : "")
     + "            "
     + alias3(alias5(((stack1 = (depth0 != null ? lookupProperty(depth0,"model") : depth0)) != null ? lookupProperty(stack1,"customStyle") : stack1), depth0))
-    + "\">\n\n            <span class=\""
-    + alias3(((helper = (helper = lookupProperty(helpers,"CSS_PREFIX") || (depth0 != null ? lookupProperty(depth0,"CSS_PREFIX") : depth0)) != null ? helper : alias2),(typeof helper === alias4 ? helper.call(alias1,{"name":"CSS_PREFIX","hash":{},"data":data,"loc":{"start":{"line":22,"column":25},"end":{"line":22,"column":39}}}) : helper)))
+    + "\">\n            <span class=\""
+    + alias3(((helper = (helper = lookupProperty(helpers,"CSS_PREFIX") || (depth0 != null ? lookupProperty(depth0,"CSS_PREFIX") : depth0)) != null ? helper : alias2),(typeof helper === alias4 ? helper.call(alias1,{"name":"CSS_PREFIX","hash":{},"data":data,"loc":{"start":{"line":21,"column":25},"end":{"line":21,"column":39}}}) : helper)))
     + "weekday-schedule-title\" title=\""
     + alias3(alias5(((stack1 = (depth0 != null ? lookupProperty(depth0,"model") : depth0)) != null ? lookupProperty(stack1,"title") : stack1), depth0))
     + "\">"
-    + ((stack1 = (lookupProperty(helpers,"schedule-tmpl")||(depth0 && lookupProperty(depth0,"schedule-tmpl"))||alias2).call(alias1,(depth0 != null ? lookupProperty(depth0,"model") : depth0),{"name":"schedule-tmpl","hash":{},"data":data,"loc":{"start":{"line":22,"column":87},"end":{"line":22,"column":112}}})) != null ? stack1 : "")
+    + ((stack1 = (lookupProperty(helpers,"schedule-tmpl")||(depth0 && lookupProperty(depth0,"schedule-tmpl"))||alias2).call(alias1,(depth0 != null ? lookupProperty(depth0,"model") : depth0),{"name":"schedule-tmpl","hash":{},"data":data,"loc":{"start":{"line":21,"column":87},"end":{"line":21,"column":112}}})) != null ? stack1 : "")
     + "</span>\n            "
-    + ((stack1 = lookupProperty(helpers,"unless").call(alias1,(lookupProperty(helpers,"or")||(depth0 && lookupProperty(depth0,"or"))||alias2).call(alias1,(lookupProperty(helpers,"or")||(depth0 && lookupProperty(depth0,"or"))||alias2).call(alias1,((stack1 = (data && lookupProperty(data,"root"))) && lookupProperty(stack1,"isReadOnly")),((stack1 = (depth0 != null ? lookupProperty(depth0,"model") : depth0)) != null ? lookupProperty(stack1,"isReadOnly") : stack1),{"name":"or","hash":{},"data":data,"loc":{"start":{"line":23,"column":26},"end":{"line":23,"column":64}}}),(lookupProperty(helpers,"or")||(depth0 && lookupProperty(depth0,"or"))||alias2).call(alias1,(lookupProperty(helpers,"ne")||(depth0 && lookupProperty(depth0,"ne"))||alias2).call(alias1,((stack1 = (data && lookupProperty(data,"root"))) && lookupProperty(stack1,"isResizable")),true,{"name":"ne","hash":{},"data":data,"loc":{"start":{"line":23,"column":69},"end":{"line":23,"column":96}}}),(lookupProperty(helpers,"ne")||(depth0 && lookupProperty(depth0,"ne"))||alias2).call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"model") : depth0)) != null ? lookupProperty(stack1,"isResizable") : stack1),true,{"name":"ne","hash":{},"data":data,"loc":{"start":{"line":23,"column":97},"end":{"line":23,"column":124}}}),{"name":"or","hash":{},"data":data,"loc":{"start":{"line":23,"column":65},"end":{"line":23,"column":125}}}),{"name":"or","hash":{},"data":data,"loc":{"start":{"line":23,"column":22},"end":{"line":23,"column":126}}}),{"name":"unless","hash":{},"fn":container.program(15, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":23,"column":12},"end":{"line":23,"column":259}}})) != null ? stack1 : "")
+    + ((stack1 = lookupProperty(helpers,"unless").call(alias1,(lookupProperty(helpers,"or")||(depth0 && lookupProperty(depth0,"or"))||alias2).call(alias1,((stack1 = (data && lookupProperty(data,"root"))) && lookupProperty(stack1,"isReadOnly")),((stack1 = (depth0 != null ? lookupProperty(depth0,"model") : depth0)) != null ? lookupProperty(stack1,"isReadOnly") : stack1),{"name":"or","hash":{},"data":data,"loc":{"start":{"line":22,"column":22},"end":{"line":22,"column":60}}}),{"name":"unless","hash":{},"fn":container.program(15, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":22,"column":12},"end":{"line":22,"column":193}}})) != null ? stack1 : "")
     + "\n        </div>\n    </div>\n";
 },"5":function(container,depth0,helpers,partials,data) {
     var helper, lookupProperty = container.lookupProperty || function(parent, propertyName) {
@@ -23306,7 +22939,7 @@ module.exports = (Handlebars['default'] || Handlebars).template({"1":function(co
     };
 
   return "<span class=\""
-    + alias1(((helper = (helper = lookupProperty(helpers,"CSS_PREFIX") || (depth0 != null ? lookupProperty(depth0,"CSS_PREFIX") : depth0)) != null ? helper : container.hooks.helperMissing),(typeof helper === "function" ? helper.call(depth0 != null ? depth0 : (container.nullContext || {}),{"name":"CSS_PREFIX","hash":{},"data":data,"loc":{"start":{"line":23,"column":141},"end":{"line":23,"column":155}}}) : helper)))
+    + alias1(((helper = (helper = lookupProperty(helpers,"CSS_PREFIX") || (depth0 != null ? lookupProperty(depth0,"CSS_PREFIX") : depth0)) != null ? helper : container.hooks.helperMissing),(typeof helper === "function" ? helper.call(depth0 != null ? depth0 : (container.nullContext || {}),{"name":"CSS_PREFIX","hash":{},"data":data,"loc":{"start":{"line":22,"column":75},"end":{"line":22,"column":89}}}) : helper)))
     + "weekday-resize-handle handle-y\" style=\"line-height:"
     + alias1(container.lambda(((stack1 = (data && lookupProperty(data,"root"))) && lookupProperty(stack1,"scheduleHeight")), depth0))
     + "px;\">&nbsp;</span>";
@@ -23325,7 +22958,7 @@ module.exports = (Handlebars['default'] || Handlebars).template({"1":function(co
     + "\"style=\"top:"
     + alias4(container.lambda(((stack1 = (data && lookupProperty(data,"root"))) && lookupProperty(stack1,"scheduleContainerTop")), depth0))
     + "px;\">\n"
-    + ((stack1 = lookupProperty(helpers,"each").call(alias1,(depth0 != null ? lookupProperty(depth0,"matrices") : depth0),{"name":"each","hash":{},"fn":container.program(1, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":2,"column":4},"end":{"line":29,"column":15}}})) != null ? stack1 : "")
+    + ((stack1 = lookupProperty(helpers,"each").call(alias1,(depth0 != null ? lookupProperty(depth0,"matrices") : depth0),{"name":"each","hash":{},"fn":container.program(1, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":2,"column":4},"end":{"line":28,"column":15}}})) != null ? stack1 : "")
     + "</div>\n";
 },"useData":true});
 
@@ -23417,7 +23050,7 @@ module.exports = (Handlebars['default'] || Handlebars).template({"1":function(co
         return undefined
     };
 
-  return ((stack1 = lookupProperty(helpers,"each").call(depth0 != null ? depth0 : (container.nullContext || {}),depth0,{"name":"each","hash":{},"fn":container.program(2, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":3,"column":4},"end":{"line":62,"column":13}}})) != null ? stack1 : "");
+  return ((stack1 = lookupProperty(helpers,"each").call(depth0 != null ? depth0 : (container.nullContext || {}),depth0,{"name":"each","hash":{},"fn":container.program(2, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":3,"column":4},"end":{"line":60,"column":13}}})) != null ? stack1 : "");
 },"2":function(container,depth0,helpers,partials,data) {
     var stack1, lookupProperty = container.lookupProperty || function(parent, propertyName) {
         if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
@@ -23426,7 +23059,7 @@ module.exports = (Handlebars['default'] || Handlebars).template({"1":function(co
         return undefined
     };
 
-  return ((stack1 = lookupProperty(helpers,"each").call(depth0 != null ? depth0 : (container.nullContext || {}),depth0,{"name":"each","hash":{},"fn":container.program(3, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":4,"column":8},"end":{"line":61,"column":17}}})) != null ? stack1 : "");
+  return ((stack1 = lookupProperty(helpers,"each").call(depth0 != null ? depth0 : (container.nullContext || {}),depth0,{"name":"each","hash":{},"fn":container.program(3, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":4,"column":8},"end":{"line":59,"column":17}}})) != null ? stack1 : "");
 },"3":function(container,depth0,helpers,partials,data) {
     var stack1, lookupProperty = container.lookupProperty || function(parent, propertyName) {
         if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
@@ -23435,7 +23068,7 @@ module.exports = (Handlebars['default'] || Handlebars).template({"1":function(co
         return undefined
     };
 
-  return ((stack1 = lookupProperty(helpers,"if").call(depth0 != null ? depth0 : (container.nullContext || {}),depth0,{"name":"if","hash":{},"fn":container.program(4, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":5,"column":8},"end":{"line":60,"column":17}}})) != null ? stack1 : "");
+  return ((stack1 = lookupProperty(helpers,"if").call(depth0 != null ? depth0 : (container.nullContext || {}),depth0,{"name":"if","hash":{},"fn":container.program(4, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":5,"column":8},"end":{"line":58,"column":17}}})) != null ? stack1 : "");
 },"4":function(container,depth0,helpers,partials,data) {
     var stack1, helper, alias1=depth0 != null ? depth0 : (container.nullContext || {}), alias2=container.hooks.helperMissing, alias3="function", alias4=container.escapeExpression, alias5=container.lambda, lookupProperty = container.lookupProperty || function(parent, propertyName) {
         if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
@@ -23454,40 +23087,38 @@ module.exports = (Handlebars['default'] || Handlebars).template({"1":function(co
     + alias4((lookupProperty(helpers,"time-scheduleBlock")||(depth0 && lookupProperty(depth0,"time-scheduleBlock"))||alias2).call(alias1,depth0,{"name":"time-scheduleBlock","hash":{},"data":data,"loc":{"start":{"line":7,"column":19},"end":{"line":7,"column":46}}}))
     + ";\n"
     + ((stack1 = (lookupProperty(helpers,"fi")||(depth0 && lookupProperty(depth0,"fi"))||alias2).call(alias1,(depth0 != null ? lookupProperty(depth0,"left") : depth0),"!==",0,{"name":"fi","hash":{},"fn":container.program(7, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":8,"column":16},"end":{"line":10,"column":23}}})) != null ? stack1 : "")
-    + "            \">\n            "
-    + ((stack1 = lookupProperty(helpers,"unless").call(alias1,(lookupProperty(helpers,"or")||(depth0 && lookupProperty(depth0,"or"))||alias2).call(alias1,(depth0 != null ? lookupProperty(depth0,"croppedEnd") : depth0),((stack1 = (data && lookupProperty(data,"root"))) && lookupProperty(stack1,"isReadOnly")),((stack1 = (depth0 != null ? lookupProperty(depth0,"model") : depth0)) != null ? lookupProperty(stack1,"isReadOnly") : stack1),(lookupProperty(helpers,"ne")||(depth0 && lookupProperty(depth0,"ne"))||alias2).call(alias1,((stack1 = (data && lookupProperty(data,"root"))) && lookupProperty(stack1,"isResizable")),true,{"name":"ne","hash":{},"data":data,"loc":{"start":{"line":12,"column":71},"end":{"line":12,"column":98}}}),(lookupProperty(helpers,"ne")||(depth0 && lookupProperty(depth0,"ne"))||alias2).call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"model") : depth0)) != null ? lookupProperty(stack1,"isResizable") : stack1),true,{"name":"ne","hash":{},"data":data,"loc":{"start":{"line":12,"column":99},"end":{"line":12,"column":126}}}),{"name":"or","hash":{},"data":data,"loc":{"start":{"line":12,"column":22},"end":{"line":12,"column":127}}}),{"name":"unless","hash":{},"fn":container.program(9, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":12,"column":12},"end":{"line":12,"column":276}}})) != null ? stack1 : "")
-    + "\n\n            <div data-schedule-id=\""
+    + "            \">\n            <div data-schedule-id=\""
     + alias4(alias5(((stack1 = (depth0 != null ? lookupProperty(depth0,"model") : depth0)) != null ? lookupProperty(stack1,"id") : stack1), depth0))
     + "\" data-calendar-id=\""
     + alias4(alias5(((stack1 = (depth0 != null ? lookupProperty(depth0,"model") : depth0)) != null ? lookupProperty(stack1,"calendarId") : stack1), depth0))
     + "\" class=\""
-    + alias4(((helper = (helper = lookupProperty(helpers,"CSS_PREFIX") || (depth0 != null ? lookupProperty(depth0,"CSS_PREFIX") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"CSS_PREFIX","hash":{},"data":data,"loc":{"start":{"line":14,"column":96},"end":{"line":14,"column":110}}}) : helper)))
+    + alias4(((helper = (helper = lookupProperty(helpers,"CSS_PREFIX") || (depth0 != null ? lookupProperty(depth0,"CSS_PREFIX") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"CSS_PREFIX","hash":{},"data":data,"loc":{"start":{"line":12,"column":96},"end":{"line":12,"column":110}}}) : helper)))
     + "time-schedule "
-    + ((stack1 = lookupProperty(helpers,"if").call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"model") : depth0)) != null ? lookupProperty(stack1,"isFocused") : stack1),{"name":"if","hash":{},"fn":container.program(11, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":14,"column":124},"end":{"line":14,"column":190}}})) != null ? stack1 : "")
+    + ((stack1 = lookupProperty(helpers,"if").call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"model") : depth0)) != null ? lookupProperty(stack1,"isFocused") : stack1),{"name":"if","hash":{},"fn":container.program(9, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":12,"column":124},"end":{"line":12,"column":190}}})) != null ? stack1 : "")
     + "\"\n                style=\"\n"
-    + ((stack1 = lookupProperty(helpers,"unless").call(alias1,(depth0 != null ? lookupProperty(depth0,"croppedEnd") : depth0),{"name":"unless","hash":{},"fn":container.program(13, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":16,"column":16},"end":{"line":19,"column":27}}})) != null ? stack1 : "")
-    + ((stack1 = lookupProperty(helpers,"unless").call(alias1,(depth0 != null ? lookupProperty(depth0,"croppedStart") : depth0),{"name":"unless","hash":{},"fn":container.program(15, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":20,"column":16},"end":{"line":23,"column":27}}})) != null ? stack1 : "")
-    + ((stack1 = lookupProperty(helpers,"if").call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"model") : depth0)) != null ? lookupProperty(stack1,"isFocused") : stack1),{"name":"if","hash":{},"fn":container.program(17, data, 0),"inverse":container.program(19, data, 0),"data":data,"loc":{"start":{"line":24,"column":16},"end":{"line":28,"column":23}}})) != null ? stack1 : "")
+    + ((stack1 = lookupProperty(helpers,"unless").call(alias1,(depth0 != null ? lookupProperty(depth0,"croppedEnd") : depth0),{"name":"unless","hash":{},"fn":container.program(11, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":14,"column":16},"end":{"line":17,"column":27}}})) != null ? stack1 : "")
+    + ((stack1 = lookupProperty(helpers,"unless").call(alias1,(depth0 != null ? lookupProperty(depth0,"croppedStart") : depth0),{"name":"unless","hash":{},"fn":container.program(13, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":18,"column":16},"end":{"line":21,"column":27}}})) != null ? stack1 : "")
+    + ((stack1 = lookupProperty(helpers,"if").call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"model") : depth0)) != null ? lookupProperty(stack1,"isFocused") : stack1),{"name":"if","hash":{},"fn":container.program(15, data, 0),"inverse":container.program(17, data, 0),"data":data,"loc":{"start":{"line":22,"column":16},"end":{"line":26,"column":23}}})) != null ? stack1 : "")
     + "                 "
     + alias4(alias5(((stack1 = (depth0 != null ? lookupProperty(depth0,"model") : depth0)) != null ? lookupProperty(stack1,"customStyle") : stack1), depth0))
     + "\"\n            >\n"
-    + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"hasGoingDuration") : depth0),{"name":"if","hash":{},"fn":container.program(21, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":31,"column":12},"end":{"line":39,"column":19}}})) != null ? stack1 : "")
+    + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"hasGoingDuration") : depth0),{"name":"if","hash":{},"fn":container.program(19, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":29,"column":12},"end":{"line":37,"column":19}}})) != null ? stack1 : "")
     + "                <div class=\""
-    + alias4(((helper = (helper = lookupProperty(helpers,"CSS_PREFIX") || (depth0 != null ? lookupProperty(depth0,"CSS_PREFIX") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"CSS_PREFIX","hash":{},"data":data,"loc":{"start":{"line":40,"column":28},"end":{"line":40,"column":42}}}) : helper)))
+    + alias4(((helper = (helper = lookupProperty(helpers,"CSS_PREFIX") || (depth0 != null ? lookupProperty(depth0,"CSS_PREFIX") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"CSS_PREFIX","hash":{},"data":data,"loc":{"start":{"line":38,"column":28},"end":{"line":38,"column":42}}}) : helper)))
     + "time-schedule-content "
-    + alias4(((helper = (helper = lookupProperty(helpers,"CSS_PREFIX") || (depth0 != null ? lookupProperty(depth0,"CSS_PREFIX") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"CSS_PREFIX","hash":{},"data":data,"loc":{"start":{"line":40,"column":64},"end":{"line":40,"column":78}}}) : helper)))
+    + alias4(((helper = (helper = lookupProperty(helpers,"CSS_PREFIX") || (depth0 != null ? lookupProperty(depth0,"CSS_PREFIX") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"CSS_PREFIX","hash":{},"data":data,"loc":{"start":{"line":38,"column":64},"end":{"line":38,"column":78}}}) : helper)))
     + "time-schedule-content-time\" style=\"height: "
-    + alias4(((helper = (helper = lookupProperty(helpers,"modelDurationHeight") || (depth0 != null ? lookupProperty(depth0,"modelDurationHeight") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"modelDurationHeight","hash":{},"data":data,"loc":{"start":{"line":40,"column":121},"end":{"line":40,"column":144}}}) : helper)))
+    + alias4(((helper = (helper = lookupProperty(helpers,"modelDurationHeight") || (depth0 != null ? lookupProperty(depth0,"modelDurationHeight") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"modelDurationHeight","hash":{},"data":data,"loc":{"start":{"line":38,"column":121},"end":{"line":38,"column":144}}}) : helper)))
     + "px;\n"
-    + ((stack1 = lookupProperty(helpers,"if").call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"model") : depth0)) != null ? lookupProperty(stack1,"isFocused") : stack1),{"name":"if","hash":{},"fn":container.program(22, data, 0),"inverse":container.program(24, data, 0),"data":data,"loc":{"start":{"line":41,"column":16},"end":{"line":45,"column":23}}})) != null ? stack1 : "")
+    + ((stack1 = lookupProperty(helpers,"if").call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"model") : depth0)) != null ? lookupProperty(stack1,"isFocused") : stack1),{"name":"if","hash":{},"fn":container.program(20, data, 0),"inverse":container.program(22, data, 0),"data":data,"loc":{"start":{"line":39,"column":16},"end":{"line":43,"column":23}}})) != null ? stack1 : "")
     + "                "
-    + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"hasComingDuration") : depth0),{"name":"if","hash":{},"fn":container.program(26, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":46,"column":16},"end":{"line":46,"column":96}}})) != null ? stack1 : "")
+    + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"hasComingDuration") : depth0),{"name":"if","hash":{},"fn":container.program(24, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":44,"column":16},"end":{"line":44,"column":96}}})) != null ? stack1 : "")
     + "\">\n                    "
-    + ((stack1 = (lookupProperty(helpers,"time-tmpl")||(depth0 && lookupProperty(depth0,"time-tmpl"))||alias2).call(alias1,(depth0 != null ? lookupProperty(depth0,"model") : depth0),{"name":"time-tmpl","hash":{},"data":data,"loc":{"start":{"line":47,"column":20},"end":{"line":47,"column":41}}})) != null ? stack1 : "")
+    + ((stack1 = (lookupProperty(helpers,"time-tmpl")||(depth0 && lookupProperty(depth0,"time-tmpl"))||alias2).call(alias1,(depth0 != null ? lookupProperty(depth0,"model") : depth0),{"name":"time-tmpl","hash":{},"data":data,"loc":{"start":{"line":45,"column":20},"end":{"line":45,"column":41}}})) != null ? stack1 : "")
     + "\n                </div>\n"
-    + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"hasComingDuration") : depth0),{"name":"if","hash":{},"fn":container.program(28, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":49,"column":12},"end":{"line":56,"column":19}}})) != null ? stack1 : "")
+    + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"hasComingDuration") : depth0),{"name":"if","hash":{},"fn":container.program(26, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":47,"column":12},"end":{"line":54,"column":19}}})) != null ? stack1 : "")
     + "            </div>\n            "
-    + ((stack1 = lookupProperty(helpers,"unless").call(alias1,(lookupProperty(helpers,"or")||(depth0 && lookupProperty(depth0,"or"))||alias2).call(alias1,(depth0 != null ? lookupProperty(depth0,"croppedEnd") : depth0),((stack1 = (data && lookupProperty(data,"root"))) && lookupProperty(stack1,"isReadOnly")),((stack1 = (depth0 != null ? lookupProperty(depth0,"model") : depth0)) != null ? lookupProperty(stack1,"isReadOnly") : stack1),(lookupProperty(helpers,"ne")||(depth0 && lookupProperty(depth0,"ne"))||alias2).call(alias1,((stack1 = (data && lookupProperty(data,"root"))) && lookupProperty(stack1,"isResizable")),true,{"name":"ne","hash":{},"data":data,"loc":{"start":{"line":58,"column":71},"end":{"line":58,"column":98}}}),(lookupProperty(helpers,"ne")||(depth0 && lookupProperty(depth0,"ne"))||alias2).call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"model") : depth0)) != null ? lookupProperty(stack1,"isResizable") : stack1),true,{"name":"ne","hash":{},"data":data,"loc":{"start":{"line":58,"column":99},"end":{"line":58,"column":126}}}),{"name":"or","hash":{},"data":data,"loc":{"start":{"line":58,"column":22},"end":{"line":58,"column":127}}}),{"name":"unless","hash":{},"fn":container.program(31, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":58,"column":12},"end":{"line":58,"column":279}}})) != null ? stack1 : "")
+    + ((stack1 = lookupProperty(helpers,"unless").call(alias1,(lookupProperty(helpers,"or")||(depth0 && lookupProperty(depth0,"or"))||alias2).call(alias1,(depth0 != null ? lookupProperty(depth0,"croppedEnd") : depth0),((stack1 = (data && lookupProperty(data,"root"))) && lookupProperty(stack1,"isReadOnly")),((stack1 = (depth0 != null ? lookupProperty(depth0,"model") : depth0)) != null ? lookupProperty(stack1,"isReadOnly") : stack1),{"name":"or","hash":{},"data":data,"loc":{"start":{"line":56,"column":22},"end":{"line":56,"column":71}}}),{"name":"unless","hash":{},"fn":container.program(29, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":56,"column":12},"end":{"line":56,"column":202}}})) != null ? stack1 : "")
     + "\n        </div>\n";
 },"5":function(container,depth0,helpers,partials,data) {
     var helper, lookupProperty = container.lookupProperty || function(parent, propertyName) {
@@ -23512,19 +23143,6 @@ module.exports = (Handlebars['default'] || Handlebars).template({"1":function(co
     + container.escapeExpression(container.lambda(((stack1 = ((stack1 = (data && lookupProperty(data,"root"))) && lookupProperty(stack1,"styles"))) && lookupProperty(stack1,"paddingLeft")), depth0))
     + ";\n";
 },"9":function(container,depth0,helpers,partials,data) {
-    var stack1, helper, alias1=container.escapeExpression, lookupProperty = container.lookupProperty || function(parent, propertyName) {
-        if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
-          return parent[propertyName];
-        }
-        return undefined
-    };
-
-  return "<div class=\""
-    + alias1(((helper = (helper = lookupProperty(helpers,"CSS_PREFIX") || (depth0 != null ? lookupProperty(depth0,"CSS_PREFIX") : depth0)) != null ? helper : container.hooks.helperMissing),(typeof helper === "function" ? helper.call(depth0 != null ? depth0 : (container.nullContext || {}),{"name":"CSS_PREFIX","hash":{},"data":data,"loc":{"start":{"line":12,"column":141},"end":{"line":12,"column":155}}}) : helper)))
-    + "time-resize-handle resize-handle-top handle-x\" style=\"margin-left: "
-    + alias1(container.lambda(((stack1 = ((stack1 = (data && lookupProperty(data,"root"))) && lookupProperty(stack1,"styles"))) && lookupProperty(stack1,"paddingLeft")), depth0))
-    + ";\">&nbsp;</div>";
-},"11":function(container,depth0,helpers,partials,data) {
     var helper, lookupProperty = container.lookupProperty || function(parent, propertyName) {
         if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
           return parent[propertyName];
@@ -23532,9 +23150,9 @@ module.exports = (Handlebars['default'] || Handlebars).template({"1":function(co
         return undefined
     };
 
-  return container.escapeExpression(((helper = (helper = lookupProperty(helpers,"CSS_PREFIX") || (depth0 != null ? lookupProperty(depth0,"CSS_PREFIX") : depth0)) != null ? helper : container.hooks.helperMissing),(typeof helper === "function" ? helper.call(depth0 != null ? depth0 : (container.nullContext || {}),{"name":"CSS_PREFIX","hash":{},"data":data,"loc":{"start":{"line":14,"column":147},"end":{"line":14,"column":161}}}) : helper)))
+  return container.escapeExpression(((helper = (helper = lookupProperty(helpers,"CSS_PREFIX") || (depth0 != null ? lookupProperty(depth0,"CSS_PREFIX") : depth0)) != null ? helper : container.hooks.helperMissing),(typeof helper === "function" ? helper.call(depth0 != null ? depth0 : (container.nullContext || {}),{"name":"CSS_PREFIX","hash":{},"data":data,"loc":{"start":{"line":12,"column":147},"end":{"line":12,"column":161}}}) : helper)))
     + "time-schedule-focused ";
-},"13":function(container,depth0,helpers,partials,data) {
+},"11":function(container,depth0,helpers,partials,data) {
     var stack1, alias1=container.lambda, alias2=container.escapeExpression, lookupProperty = container.lookupProperty || function(parent, propertyName) {
         if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
           return parent[propertyName];
@@ -23547,7 +23165,7 @@ module.exports = (Handlebars['default'] || Handlebars).template({"1":function(co
     + ";\n                    border-bottom-right-radius: "
     + alias2(alias1(((stack1 = ((stack1 = (data && lookupProperty(data,"root"))) && lookupProperty(stack1,"styles"))) && lookupProperty(stack1,"borderRadius")), depth0))
     + ";\n";
-},"15":function(container,depth0,helpers,partials,data) {
+},"13":function(container,depth0,helpers,partials,data) {
     var stack1, alias1=container.lambda, alias2=container.escapeExpression, lookupProperty = container.lookupProperty || function(parent, propertyName) {
         if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
           return parent[propertyName];
@@ -23560,7 +23178,7 @@ module.exports = (Handlebars['default'] || Handlebars).template({"1":function(co
     + ";\n                    border-top-right-radius: "
     + alias2(alias1(((stack1 = ((stack1 = (data && lookupProperty(data,"root"))) && lookupProperty(stack1,"styles"))) && lookupProperty(stack1,"borderRadius")), depth0))
     + ";\n";
-},"17":function(container,depth0,helpers,partials,data) {
+},"15":function(container,depth0,helpers,partials,data) {
     var stack1, alias1=container.lambda, alias2=container.escapeExpression, lookupProperty = container.lookupProperty || function(parent, propertyName) {
         if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
           return parent[propertyName];
@@ -23573,7 +23191,7 @@ module.exports = (Handlebars['default'] || Handlebars).template({"1":function(co
     + "; border-color:"
     + alias2(alias1(((stack1 = (depth0 != null ? lookupProperty(depth0,"model") : depth0)) != null ? lookupProperty(stack1,"color") : stack1), depth0))
     + ";\n";
-},"19":function(container,depth0,helpers,partials,data) {
+},"17":function(container,depth0,helpers,partials,data) {
     var stack1, alias1=container.lambda, alias2=container.escapeExpression, lookupProperty = container.lookupProperty || function(parent, propertyName) {
         if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
           return parent[propertyName];
@@ -23588,7 +23206,7 @@ module.exports = (Handlebars['default'] || Handlebars).template({"1":function(co
     + "; border-color:"
     + alias2(alias1(((stack1 = (depth0 != null ? lookupProperty(depth0,"model") : depth0)) != null ? lookupProperty(stack1,"borderColor") : stack1), depth0))
     + ";\n";
-},"21":function(container,depth0,helpers,partials,data) {
+},"19":function(container,depth0,helpers,partials,data) {
     var stack1, helper, alias1=depth0 != null ? depth0 : (container.nullContext || {}), alias2=container.hooks.helperMissing, alias3="function", alias4=container.escapeExpression, lookupProperty = container.lookupProperty || function(parent, propertyName) {
         if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
           return parent[propertyName];
@@ -23597,19 +23215,19 @@ module.exports = (Handlebars['default'] || Handlebars).template({"1":function(co
     };
 
   return "                <div class=\""
-    + alias4(((helper = (helper = lookupProperty(helpers,"CSS_PREFIX") || (depth0 != null ? lookupProperty(depth0,"CSS_PREFIX") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"CSS_PREFIX","hash":{},"data":data,"loc":{"start":{"line":32,"column":28},"end":{"line":32,"column":42}}}) : helper)))
+    + alias4(((helper = (helper = lookupProperty(helpers,"CSS_PREFIX") || (depth0 != null ? lookupProperty(depth0,"CSS_PREFIX") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"CSS_PREFIX","hash":{},"data":data,"loc":{"start":{"line":30,"column":28},"end":{"line":30,"column":42}}}) : helper)))
     + "time-schedule-content "
-    + alias4(((helper = (helper = lookupProperty(helpers,"CSS_PREFIX") || (depth0 != null ? lookupProperty(depth0,"CSS_PREFIX") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"CSS_PREFIX","hash":{},"data":data,"loc":{"start":{"line":32,"column":64},"end":{"line":32,"column":78}}}) : helper)))
+    + alias4(((helper = (helper = lookupProperty(helpers,"CSS_PREFIX") || (depth0 != null ? lookupProperty(depth0,"CSS_PREFIX") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"CSS_PREFIX","hash":{},"data":data,"loc":{"start":{"line":30,"column":64},"end":{"line":30,"column":78}}}) : helper)))
     + "time-schedule-content-travel-time\" style=\"height: "
-    + alias4(((helper = (helper = lookupProperty(helpers,"goingDurationHeight") || (depth0 != null ? lookupProperty(depth0,"goingDurationHeight") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"goingDurationHeight","hash":{},"data":data,"loc":{"start":{"line":32,"column":128},"end":{"line":32,"column":151}}}) : helper)))
+    + alias4(((helper = (helper = lookupProperty(helpers,"goingDurationHeight") || (depth0 != null ? lookupProperty(depth0,"goingDurationHeight") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"goingDurationHeight","hash":{},"data":data,"loc":{"start":{"line":30,"column":128},"end":{"line":30,"column":151}}}) : helper)))
     + "px;\n"
-    + ((stack1 = lookupProperty(helpers,"if").call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"model") : depth0)) != null ? lookupProperty(stack1,"isFocused") : stack1),{"name":"if","hash":{},"fn":container.program(22, data, 0),"inverse":container.program(24, data, 0),"data":data,"loc":{"start":{"line":33,"column":16},"end":{"line":37,"column":23}}})) != null ? stack1 : "")
+    + ((stack1 = lookupProperty(helpers,"if").call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"model") : depth0)) != null ? lookupProperty(stack1,"isFocused") : stack1),{"name":"if","hash":{},"fn":container.program(20, data, 0),"inverse":container.program(22, data, 0),"data":data,"loc":{"start":{"line":31,"column":16},"end":{"line":35,"column":23}}})) != null ? stack1 : "")
     + "                border-bottom: 1px dashed "
-    + alias4(((helper = (helper = lookupProperty(helpers,"travelBorderColor") || (depth0 != null ? lookupProperty(depth0,"travelBorderColor") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"travelBorderColor","hash":{},"data":data,"loc":{"start":{"line":38,"column":42},"end":{"line":38,"column":63}}}) : helper)))
+    + alias4(((helper = (helper = lookupProperty(helpers,"travelBorderColor") || (depth0 != null ? lookupProperty(depth0,"travelBorderColor") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"travelBorderColor","hash":{},"data":data,"loc":{"start":{"line":36,"column":42},"end":{"line":36,"column":63}}}) : helper)))
     + ";\">"
-    + ((stack1 = (lookupProperty(helpers,"goingDuration-tmpl")||(depth0 && lookupProperty(depth0,"goingDuration-tmpl"))||alias2).call(alias1,(depth0 != null ? lookupProperty(depth0,"model") : depth0),{"name":"goingDuration-tmpl","hash":{},"data":data,"loc":{"start":{"line":38,"column":66},"end":{"line":38,"column":96}}})) != null ? stack1 : "")
+    + ((stack1 = (lookupProperty(helpers,"goingDuration-tmpl")||(depth0 && lookupProperty(depth0,"goingDuration-tmpl"))||alias2).call(alias1,(depth0 != null ? lookupProperty(depth0,"model") : depth0),{"name":"goingDuration-tmpl","hash":{},"data":data,"loc":{"start":{"line":36,"column":66},"end":{"line":36,"column":96}}})) != null ? stack1 : "")
     + "</div>\n";
-},"22":function(container,depth0,helpers,partials,data) {
+},"20":function(container,depth0,helpers,partials,data) {
     var stack1, lookupProperty = container.lookupProperty || function(parent, propertyName) {
         if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
           return parent[propertyName];
@@ -23620,7 +23238,7 @@ module.exports = (Handlebars['default'] || Handlebars).template({"1":function(co
   return "                    border-color:"
     + container.escapeExpression(container.lambda(((stack1 = (depth0 != null ? lookupProperty(depth0,"model") : depth0)) != null ? lookupProperty(stack1,"color") : stack1), depth0))
     + ";\n";
-},"24":function(container,depth0,helpers,partials,data) {
+},"22":function(container,depth0,helpers,partials,data) {
     var stack1, lookupProperty = container.lookupProperty || function(parent, propertyName) {
         if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
           return parent[propertyName];
@@ -23631,7 +23249,7 @@ module.exports = (Handlebars['default'] || Handlebars).template({"1":function(co
   return "                    border-color:"
     + container.escapeExpression(container.lambda(((stack1 = (depth0 != null ? lookupProperty(depth0,"model") : depth0)) != null ? lookupProperty(stack1,"borderColor") : stack1), depth0))
     + ";\n";
-},"26":function(container,depth0,helpers,partials,data) {
+},"24":function(container,depth0,helpers,partials,data) {
     var helper, lookupProperty = container.lookupProperty || function(parent, propertyName) {
         if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
           return parent[propertyName];
@@ -23640,9 +23258,9 @@ module.exports = (Handlebars['default'] || Handlebars).template({"1":function(co
     };
 
   return "border-bottom: 1px dashed "
-    + container.escapeExpression(((helper = (helper = lookupProperty(helpers,"travelBorderColor") || (depth0 != null ? lookupProperty(depth0,"travelBorderColor") : depth0)) != null ? helper : container.hooks.helperMissing),(typeof helper === "function" ? helper.call(depth0 != null ? depth0 : (container.nullContext || {}),{"name":"travelBorderColor","hash":{},"data":data,"loc":{"start":{"line":46,"column":67},"end":{"line":46,"column":88}}}) : helper)))
+    + container.escapeExpression(((helper = (helper = lookupProperty(helpers,"travelBorderColor") || (depth0 != null ? lookupProperty(depth0,"travelBorderColor") : depth0)) != null ? helper : container.hooks.helperMissing),(typeof helper === "function" ? helper.call(depth0 != null ? depth0 : (container.nullContext || {}),{"name":"travelBorderColor","hash":{},"data":data,"loc":{"start":{"line":44,"column":67},"end":{"line":44,"column":88}}}) : helper)))
     + ";";
-},"28":function(container,depth0,helpers,partials,data) {
+},"26":function(container,depth0,helpers,partials,data) {
     var stack1, helper, alias1=depth0 != null ? depth0 : (container.nullContext || {}), alias2=container.hooks.helperMissing, alias3="function", alias4=container.escapeExpression, lookupProperty = container.lookupProperty || function(parent, propertyName) {
         if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
           return parent[propertyName];
@@ -23651,17 +23269,17 @@ module.exports = (Handlebars['default'] || Handlebars).template({"1":function(co
     };
 
   return "                <div class=\""
-    + alias4(((helper = (helper = lookupProperty(helpers,"CSS_PREFIX") || (depth0 != null ? lookupProperty(depth0,"CSS_PREFIX") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"CSS_PREFIX","hash":{},"data":data,"loc":{"start":{"line":50,"column":28},"end":{"line":50,"column":42}}}) : helper)))
+    + alias4(((helper = (helper = lookupProperty(helpers,"CSS_PREFIX") || (depth0 != null ? lookupProperty(depth0,"CSS_PREFIX") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"CSS_PREFIX","hash":{},"data":data,"loc":{"start":{"line":48,"column":28},"end":{"line":48,"column":42}}}) : helper)))
     + "time-schedule-content "
-    + alias4(((helper = (helper = lookupProperty(helpers,"CSS_PREFIX") || (depth0 != null ? lookupProperty(depth0,"CSS_PREFIX") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"CSS_PREFIX","hash":{},"data":data,"loc":{"start":{"line":50,"column":64},"end":{"line":50,"column":78}}}) : helper)))
+    + alias4(((helper = (helper = lookupProperty(helpers,"CSS_PREFIX") || (depth0 != null ? lookupProperty(depth0,"CSS_PREFIX") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"CSS_PREFIX","hash":{},"data":data,"loc":{"start":{"line":48,"column":64},"end":{"line":48,"column":78}}}) : helper)))
     + "time-schedule-content-travel-time\" style=\"height: "
-    + alias4(((helper = (helper = lookupProperty(helpers,"comingDurationHeight") || (depth0 != null ? lookupProperty(depth0,"comingDurationHeight") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"comingDurationHeight","hash":{},"data":data,"loc":{"start":{"line":50,"column":128},"end":{"line":50,"column":152}}}) : helper)))
+    + alias4(((helper = (helper = lookupProperty(helpers,"comingDurationHeight") || (depth0 != null ? lookupProperty(depth0,"comingDurationHeight") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"comingDurationHeight","hash":{},"data":data,"loc":{"start":{"line":48,"column":128},"end":{"line":48,"column":152}}}) : helper)))
     + "px;\n"
-    + ((stack1 = lookupProperty(helpers,"if").call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"model") : depth0)) != null ? lookupProperty(stack1,"isFocused") : stack1),{"name":"if","hash":{},"fn":container.program(22, data, 0),"inverse":container.program(29, data, 0),"data":data,"loc":{"start":{"line":51,"column":16},"end":{"line":55,"column":23}}})) != null ? stack1 : "")
+    + ((stack1 = lookupProperty(helpers,"if").call(alias1,((stack1 = (depth0 != null ? lookupProperty(depth0,"model") : depth0)) != null ? lookupProperty(stack1,"isFocused") : stack1),{"name":"if","hash":{},"fn":container.program(20, data, 0),"inverse":container.program(27, data, 0),"data":data,"loc":{"start":{"line":49,"column":16},"end":{"line":53,"column":23}}})) != null ? stack1 : "")
     + ";\">"
-    + ((stack1 = (lookupProperty(helpers,"comingDuration-tmpl")||(depth0 && lookupProperty(depth0,"comingDuration-tmpl"))||alias2).call(alias1,(depth0 != null ? lookupProperty(depth0,"model") : depth0),{"name":"comingDuration-tmpl","hash":{},"data":data,"loc":{"start":{"line":55,"column":26},"end":{"line":55,"column":57}}})) != null ? stack1 : "")
+    + ((stack1 = (lookupProperty(helpers,"comingDuration-tmpl")||(depth0 && lookupProperty(depth0,"comingDuration-tmpl"))||alias2).call(alias1,(depth0 != null ? lookupProperty(depth0,"model") : depth0),{"name":"comingDuration-tmpl","hash":{},"data":data,"loc":{"start":{"line":53,"column":26},"end":{"line":53,"column":57}}})) != null ? stack1 : "")
     + "</div>\n";
-},"29":function(container,depth0,helpers,partials,data) {
+},"27":function(container,depth0,helpers,partials,data) {
     var stack1, lookupProperty = container.lookupProperty || function(parent, propertyName) {
         if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
           return parent[propertyName];
@@ -23672,7 +23290,7 @@ module.exports = (Handlebars['default'] || Handlebars).template({"1":function(co
   return "                    border-color:"
     + container.escapeExpression(container.lambda(((stack1 = (depth0 != null ? lookupProperty(depth0,"model") : depth0)) != null ? lookupProperty(stack1,"borderColor") : stack1), depth0))
     + ";\n                ";
-},"31":function(container,depth0,helpers,partials,data) {
+},"29":function(container,depth0,helpers,partials,data) {
     var stack1, helper, alias1=container.escapeExpression, lookupProperty = container.lookupProperty || function(parent, propertyName) {
         if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
           return parent[propertyName];
@@ -23681,8 +23299,8 @@ module.exports = (Handlebars['default'] || Handlebars).template({"1":function(co
     };
 
   return "<div class=\""
-    + alias1(((helper = (helper = lookupProperty(helpers,"CSS_PREFIX") || (depth0 != null ? lookupProperty(depth0,"CSS_PREFIX") : depth0)) != null ? helper : container.hooks.helperMissing),(typeof helper === "function" ? helper.call(depth0 != null ? depth0 : (container.nullContext || {}),{"name":"CSS_PREFIX","hash":{},"data":data,"loc":{"start":{"line":58,"column":141},"end":{"line":58,"column":155}}}) : helper)))
-    + "time-resize-handle resize-handle-bottom handle-x\" style=\"margin-left: "
+    + alias1(((helper = (helper = lookupProperty(helpers,"CSS_PREFIX") || (depth0 != null ? lookupProperty(depth0,"CSS_PREFIX") : depth0)) != null ? helper : container.hooks.helperMissing),(typeof helper === "function" ? helper.call(depth0 != null ? depth0 : (container.nullContext || {}),{"name":"CSS_PREFIX","hash":{},"data":data,"loc":{"start":{"line":56,"column":85},"end":{"line":56,"column":99}}}) : helper)))
+    + "time-resize-handle handle-x\" style=\"margin-left: "
     + alias1(container.lambda(((stack1 = ((stack1 = (data && lookupProperty(data,"root"))) && lookupProperty(stack1,"styles"))) && lookupProperty(stack1,"paddingLeft")), depth0))
     + ";\">&nbsp;</div>";
 },"compiler":[8,">= 4.3.0"],"main":function(container,depth0,helpers,partials,data) {
@@ -23698,7 +23316,7 @@ module.exports = (Handlebars['default'] || Handlebars).template({"1":function(co
     + "time-date-schedule-block-wrap\" style=\"margin-right: "
     + alias2(container.lambda(((stack1 = (depth0 != null ? lookupProperty(depth0,"styles") : depth0)) != null ? lookupProperty(stack1,"marginRight") : stack1), depth0))
     + ";\">\n"
-    + ((stack1 = lookupProperty(helpers,"each").call(alias1,(depth0 != null ? lookupProperty(depth0,"matrices") : depth0),{"name":"each","hash":{},"fn":container.program(1, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":2,"column":0},"end":{"line":63,"column":9}}})) != null ? stack1 : "")
+    + ((stack1 = lookupProperty(helpers,"each").call(alias1,(depth0 != null ? lookupProperty(depth0,"matrices") : depth0),{"name":"each","hash":{},"fn":container.program(1, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":2,"column":0},"end":{"line":61,"column":9}}})) != null ? stack1 : "")
     + "</div>\n";
 },"useData":true});
 
@@ -23992,16 +23610,26 @@ module.exports = (Handlebars['default'] || Handlebars).template({"compiler":[8,"
 
 var Handlebars = __webpack_require__(/*! ./node_modules/handlebars/runtime.js */ "./node_modules/handlebars/runtime.js");
 module.exports = (Handlebars['default'] || Handlebars).template({"1":function(container,depth0,helpers,partials,data) {
-    var helper, lookupProperty = container.lookupProperty || function(parent, propertyName) {
+    var stack1, helper, alias1=depth0 != null ? depth0 : (container.nullContext || {}), alias2=container.hooks.helperMissing, alias3="function", alias4=container.escapeExpression, alias5=container.lambda, lookupProperty = container.lookupProperty || function(parent, propertyName) {
         if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
           return parent[propertyName];
         }
         return undefined
     };
 
-  return "<div class=\""
-    + container.escapeExpression(((helper = (helper = lookupProperty(helpers,"CSS_PREFIX") || (depth0 != null ? lookupProperty(depth0,"CSS_PREFIX") : depth0)) != null ? helper : container.hooks.helperMissing),(typeof helper === "function" ? helper.call(depth0 != null ? depth0 : (container.nullContext || {}),{"name":"CSS_PREFIX","hash":{},"data":data,"loc":{"start":{"line":2,"column":38},"end":{"line":2,"column":52}}}) : helper)))
-    + "time-resize-handle resize-handle-top handle-x\">&nbsp;</div>";
+  return "            <div class=\""
+    + alias4(((helper = (helper = lookupProperty(helpers,"CSS_PREFIX") || (depth0 != null ? lookupProperty(depth0,"CSS_PREFIX") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"CSS_PREFIX","hash":{},"data":data,"loc":{"start":{"line":4,"column":24},"end":{"line":4,"column":38}}}) : helper)))
+    + "time-schedule-content "
+    + alias4(((helper = (helper = lookupProperty(helpers,"CSS_PREFIX") || (depth0 != null ? lookupProperty(depth0,"CSS_PREFIX") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"CSS_PREFIX","hash":{},"data":data,"loc":{"start":{"line":4,"column":60},"end":{"line":4,"column":74}}}) : helper)))
+    + "time-schedule-content-travel-time\" style=\"border-color:"
+    + alias4(alias5(((stack1 = (depth0 != null ? lookupProperty(depth0,"model") : depth0)) != null ? lookupProperty(stack1,"borderColor") : stack1), depth0))
+    + "; border-bottom: 1px dashed "
+    + alias4(alias5(((stack1 = (depth0 != null ? lookupProperty(depth0,"model") : depth0)) != null ? lookupProperty(stack1,"color") : stack1), depth0))
+    + "; height: "
+    + alias4(((helper = (helper = lookupProperty(helpers,"goingDurationHeight") || (depth0 != null ? lookupProperty(depth0,"goingDurationHeight") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"goingDurationHeight","hash":{},"data":data,"loc":{"start":{"line":4,"column":203},"end":{"line":4,"column":226}}}) : helper)))
+    + "%;\">"
+    + ((stack1 = (lookupProperty(helpers,"goingDuration-tmpl")||(depth0 && lookupProperty(depth0,"goingDuration-tmpl"))||alias2).call(alias1,(depth0 != null ? lookupProperty(depth0,"model") : depth0),{"name":"goingDuration-tmpl","hash":{},"data":data,"loc":{"start":{"line":4,"column":230},"end":{"line":4,"column":260}}})) != null ? stack1 : "")
+    + "</div>\n";
 },"3":function(container,depth0,helpers,partials,data) {
     var stack1, helper, alias1=depth0 != null ? depth0 : (container.nullContext || {}), alias2=container.hooks.helperMissing, alias3="function", alias4=container.escapeExpression, alias5=container.lambda, lookupProperty = container.lookupProperty || function(parent, propertyName) {
         if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
@@ -24011,40 +23639,19 @@ module.exports = (Handlebars['default'] || Handlebars).template({"1":function(co
     };
 
   return "            <div class=\""
-    + alias4(((helper = (helper = lookupProperty(helpers,"CSS_PREFIX") || (depth0 != null ? lookupProperty(depth0,"CSS_PREFIX") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"CSS_PREFIX","hash":{},"data":data,"loc":{"start":{"line":5,"column":24},"end":{"line":5,"column":38}}}) : helper)))
+    + alias4(((helper = (helper = lookupProperty(helpers,"CSS_PREFIX") || (depth0 != null ? lookupProperty(depth0,"CSS_PREFIX") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"CSS_PREFIX","hash":{},"data":data,"loc":{"start":{"line":10,"column":24},"end":{"line":10,"column":38}}}) : helper)))
     + "time-schedule-content "
-    + alias4(((helper = (helper = lookupProperty(helpers,"CSS_PREFIX") || (depth0 != null ? lookupProperty(depth0,"CSS_PREFIX") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"CSS_PREFIX","hash":{},"data":data,"loc":{"start":{"line":5,"column":60},"end":{"line":5,"column":74}}}) : helper)))
-    + "time-schedule-content-travel-time\" style=\"border-color:"
-    + alias4(alias5(((stack1 = (depth0 != null ? lookupProperty(depth0,"model") : depth0)) != null ? lookupProperty(stack1,"borderColor") : stack1), depth0))
-    + "; border-bottom: 1px dashed "
-    + alias4(alias5(((stack1 = (depth0 != null ? lookupProperty(depth0,"model") : depth0)) != null ? lookupProperty(stack1,"color") : stack1), depth0))
-    + "; height: "
-    + alias4(((helper = (helper = lookupProperty(helpers,"goingDurationHeight") || (depth0 != null ? lookupProperty(depth0,"goingDurationHeight") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"goingDurationHeight","hash":{},"data":data,"loc":{"start":{"line":5,"column":203},"end":{"line":5,"column":226}}}) : helper)))
-    + "%;\">"
-    + ((stack1 = (lookupProperty(helpers,"goingDuration-tmpl")||(depth0 && lookupProperty(depth0,"goingDuration-tmpl"))||alias2).call(alias1,(depth0 != null ? lookupProperty(depth0,"model") : depth0),{"name":"goingDuration-tmpl","hash":{},"data":data,"loc":{"start":{"line":5,"column":230},"end":{"line":5,"column":260}}})) != null ? stack1 : "")
-    + "</div>\n";
-},"5":function(container,depth0,helpers,partials,data) {
-    var stack1, helper, alias1=depth0 != null ? depth0 : (container.nullContext || {}), alias2=container.hooks.helperMissing, alias3="function", alias4=container.escapeExpression, alias5=container.lambda, lookupProperty = container.lookupProperty || function(parent, propertyName) {
-        if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
-          return parent[propertyName];
-        }
-        return undefined
-    };
-
-  return "            <div class=\""
-    + alias4(((helper = (helper = lookupProperty(helpers,"CSS_PREFIX") || (depth0 != null ? lookupProperty(depth0,"CSS_PREFIX") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"CSS_PREFIX","hash":{},"data":data,"loc":{"start":{"line":11,"column":24},"end":{"line":11,"column":38}}}) : helper)))
-    + "time-schedule-content "
-    + alias4(((helper = (helper = lookupProperty(helpers,"CSS_PREFIX") || (depth0 != null ? lookupProperty(depth0,"CSS_PREFIX") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"CSS_PREFIX","hash":{},"data":data,"loc":{"start":{"line":11,"column":60},"end":{"line":11,"column":74}}}) : helper)))
+    + alias4(((helper = (helper = lookupProperty(helpers,"CSS_PREFIX") || (depth0 != null ? lookupProperty(depth0,"CSS_PREFIX") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"CSS_PREFIX","hash":{},"data":data,"loc":{"start":{"line":10,"column":60},"end":{"line":10,"column":74}}}) : helper)))
     + "time-schedule-content-travel-time\" style=\"border-color:"
     + alias4(alias5(((stack1 = (depth0 != null ? lookupProperty(depth0,"model") : depth0)) != null ? lookupProperty(stack1,"borderColor") : stack1), depth0))
     + "; border-top: 1px dashed "
     + alias4(alias5(((stack1 = (depth0 != null ? lookupProperty(depth0,"model") : depth0)) != null ? lookupProperty(stack1,"color") : stack1), depth0))
     + "; height: "
-    + alias4(((helper = (helper = lookupProperty(helpers,"comingDurationHeight") || (depth0 != null ? lookupProperty(depth0,"comingDurationHeight") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"comingDurationHeight","hash":{},"data":data,"loc":{"start":{"line":11,"column":200},"end":{"line":11,"column":224}}}) : helper)))
+    + alias4(((helper = (helper = lookupProperty(helpers,"comingDurationHeight") || (depth0 != null ? lookupProperty(depth0,"comingDurationHeight") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"comingDurationHeight","hash":{},"data":data,"loc":{"start":{"line":10,"column":200},"end":{"line":10,"column":224}}}) : helper)))
     + "%;\">"
-    + ((stack1 = (lookupProperty(helpers,"comingDuration-tmpl")||(depth0 && lookupProperty(depth0,"comingDuration-tmpl"))||alias2).call(alias1,(depth0 != null ? lookupProperty(depth0,"model") : depth0),{"name":"comingDuration-tmpl","hash":{},"data":data,"loc":{"start":{"line":11,"column":228},"end":{"line":11,"column":259}}})) != null ? stack1 : "")
+    + ((stack1 = (lookupProperty(helpers,"comingDuration-tmpl")||(depth0 && lookupProperty(depth0,"comingDuration-tmpl"))||alias2).call(alias1,(depth0 != null ? lookupProperty(depth0,"model") : depth0),{"name":"comingDuration-tmpl","hash":{},"data":data,"loc":{"start":{"line":10,"column":228},"end":{"line":10,"column":259}}})) != null ? stack1 : "")
     + "</div>\n";
-},"7":function(container,depth0,helpers,partials,data) {
+},"5":function(container,depth0,helpers,partials,data) {
     var helper, lookupProperty = container.lookupProperty || function(parent, propertyName) {
         if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
           return parent[propertyName];
@@ -24053,8 +23660,8 @@ module.exports = (Handlebars['default'] || Handlebars).template({"1":function(co
     };
 
   return "<div class=\""
-    + container.escapeExpression(((helper = (helper = lookupProperty(helpers,"CSS_PREFIX") || (depth0 != null ? lookupProperty(depth0,"CSS_PREFIX") : depth0)) != null ? helper : container.hooks.helperMissing),(typeof helper === "function" ? helper.call(depth0 != null ? depth0 : (container.nullContext || {}),{"name":"CSS_PREFIX","hash":{},"data":data,"loc":{"start":{"line":14,"column":38},"end":{"line":14,"column":52}}}) : helper)))
-    + "time-resize-handle resize-handle-bottom handle-x\">&nbsp;</div>";
+    + container.escapeExpression(((helper = (helper = lookupProperty(helpers,"CSS_PREFIX") || (depth0 != null ? lookupProperty(depth0,"CSS_PREFIX") : depth0)) != null ? helper : container.hooks.helperMissing),(typeof helper === "function" ? helper.call(depth0 != null ? depth0 : (container.nullContext || {}),{"name":"CSS_PREFIX","hash":{},"data":data,"loc":{"start":{"line":13,"column":38},"end":{"line":13,"column":52}}}) : helper)))
+    + "time-resize-handle handle-x\">&nbsp;</div>";
 },"compiler":[8,">= 4.3.0"],"main":function(container,depth0,helpers,partials,data) {
     var stack1, helper, alias1=depth0 != null ? depth0 : (container.nullContext || {}), alias2=container.hooks.helperMissing, alias3="function", alias4=container.escapeExpression, alias5=container.lambda, lookupProperty = container.lookupProperty || function(parent, propertyName) {
         if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
@@ -24067,30 +23674,28 @@ module.exports = (Handlebars['default'] || Handlebars).template({"1":function(co
     + alias4(((helper = (helper = lookupProperty(helpers,"CSS_PREFIX") || (depth0 != null ? lookupProperty(depth0,"CSS_PREFIX") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"CSS_PREFIX","hash":{},"data":data,"loc":{"start":{"line":1,"column":12},"end":{"line":1,"column":26}}}) : helper)))
     + "time-date-schedule-block\" data-id=\""
     + alias4((lookupProperty(helpers,"stamp")||(depth0 && lookupProperty(depth0,"stamp"))||alias2).call(alias1,(depth0 != null ? lookupProperty(depth0,"model") : depth0),{"name":"stamp","hash":{},"data":data,"loc":{"start":{"line":1,"column":61},"end":{"line":1,"column":76}}}))
-    + "\" style=\"width: 100%; height: 100%;\">\n    "
-    + ((stack1 = lookupProperty(helpers,"unless").call(alias1,(depth0 != null ? lookupProperty(depth0,"croppedEnd") : depth0),{"name":"unless","hash":{},"fn":container.program(1, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":2,"column":4},"end":{"line":2,"column":122}}})) != null ? stack1 : "")
-    + "\n    <div class=\""
-    + alias4(((helper = (helper = lookupProperty(helpers,"CSS_PREFIX") || (depth0 != null ? lookupProperty(depth0,"CSS_PREFIX") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"CSS_PREFIX","hash":{},"data":data,"loc":{"start":{"line":3,"column":16},"end":{"line":3,"column":30}}}) : helper)))
+    + "\" style=\"width: 100%; height: 100%;\">\n    <div class=\""
+    + alias4(((helper = (helper = lookupProperty(helpers,"CSS_PREFIX") || (depth0 != null ? lookupProperty(depth0,"CSS_PREFIX") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"CSS_PREFIX","hash":{},"data":data,"loc":{"start":{"line":2,"column":16},"end":{"line":2,"column":30}}}) : helper)))
     + "time-schedule "
-    + alias4(((helper = (helper = lookupProperty(helpers,"CSS_PREFIX") || (depth0 != null ? lookupProperty(depth0,"CSS_PREFIX") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"CSS_PREFIX","hash":{},"data":data,"loc":{"start":{"line":3,"column":44},"end":{"line":3,"column":58}}}) : helper)))
+    + alias4(((helper = (helper = lookupProperty(helpers,"CSS_PREFIX") || (depth0 != null ? lookupProperty(depth0,"CSS_PREFIX") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"CSS_PREFIX","hash":{},"data":data,"loc":{"start":{"line":2,"column":44},"end":{"line":2,"column":58}}}) : helper)))
     + "time-date-schedule-block-focused\" style=\"color: #ffffff; background-color:"
     + alias4(alias5(((stack1 = (depth0 != null ? lookupProperty(depth0,"model") : depth0)) != null ? lookupProperty(stack1,"dragBgColor") : stack1), depth0))
     + ";\">\n"
-    + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"hasGoingDuration") : depth0),{"name":"if","hash":{},"fn":container.program(3, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":4,"column":8},"end":{"line":6,"column":15}}})) != null ? stack1 : "")
+    + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"hasGoingDuration") : depth0),{"name":"if","hash":{},"fn":container.program(1, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":3,"column":8},"end":{"line":5,"column":15}}})) != null ? stack1 : "")
     + "            <div class=\""
-    + alias4(((helper = (helper = lookupProperty(helpers,"CSS_PREFIX") || (depth0 != null ? lookupProperty(depth0,"CSS_PREFIX") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"CSS_PREFIX","hash":{},"data":data,"loc":{"start":{"line":7,"column":24},"end":{"line":7,"column":38}}}) : helper)))
+    + alias4(((helper = (helper = lookupProperty(helpers,"CSS_PREFIX") || (depth0 != null ? lookupProperty(depth0,"CSS_PREFIX") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"CSS_PREFIX","hash":{},"data":data,"loc":{"start":{"line":6,"column":24},"end":{"line":6,"column":38}}}) : helper)))
     + "time-schedule-content\" style=\"height: "
-    + alias4(((helper = (helper = lookupProperty(helpers,"modelDurationHeight") || (depth0 != null ? lookupProperty(depth0,"modelDurationHeight") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"modelDurationHeight","hash":{},"data":data,"loc":{"start":{"line":7,"column":76},"end":{"line":7,"column":99}}}) : helper)))
+    + alias4(((helper = (helper = lookupProperty(helpers,"modelDurationHeight") || (depth0 != null ? lookupProperty(depth0,"modelDurationHeight") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"modelDurationHeight","hash":{},"data":data,"loc":{"start":{"line":6,"column":76},"end":{"line":6,"column":99}}}) : helper)))
     + "%; border-color:"
     + alias4(alias5(((stack1 = (depth0 != null ? lookupProperty(depth0,"model") : depth0)) != null ? lookupProperty(stack1,"borderColor") : stack1), depth0))
     + ";\">\n                "
-    + ((stack1 = (lookupProperty(helpers,"time-tmpl")||(depth0 && lookupProperty(depth0,"time-tmpl"))||alias2).call(alias1,(depth0 != null ? lookupProperty(depth0,"model") : depth0),{"name":"time-tmpl","hash":{},"data":data,"loc":{"start":{"line":8,"column":16},"end":{"line":8,"column":37}}})) != null ? stack1 : "")
+    + ((stack1 = (lookupProperty(helpers,"time-tmpl")||(depth0 && lookupProperty(depth0,"time-tmpl"))||alias2).call(alias1,(depth0 != null ? lookupProperty(depth0,"model") : depth0),{"name":"time-tmpl","hash":{},"data":data,"loc":{"start":{"line":7,"column":16},"end":{"line":7,"column":37}}})) != null ? stack1 : "")
     + "\n            </div>\n"
-    + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"hasComingDuration") : depth0),{"name":"if","hash":{},"fn":container.program(5, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":10,"column":8},"end":{"line":12,"column":15}}})) != null ? stack1 : "")
+    + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"hasComingDuration") : depth0),{"name":"if","hash":{},"fn":container.program(3, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":9,"column":8},"end":{"line":11,"column":15}}})) != null ? stack1 : "")
     + "    </div>\n    "
-    + ((stack1 = lookupProperty(helpers,"unless").call(alias1,(depth0 != null ? lookupProperty(depth0,"croppedEnd") : depth0),{"name":"unless","hash":{},"fn":container.program(7, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":14,"column":4},"end":{"line":14,"column":125}}})) != null ? stack1 : "")
+    + ((stack1 = lookupProperty(helpers,"unless").call(alias1,(depth0 != null ? lookupProperty(depth0,"croppedEnd") : depth0),{"name":"unless","hash":{},"fn":container.program(5, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":13,"column":4},"end":{"line":13,"column":104}}})) != null ? stack1 : "")
     + "\n    <div class=\""
-    + alias4(((helper = (helper = lookupProperty(helpers,"CSS_PREFIX") || (depth0 != null ? lookupProperty(depth0,"CSS_PREFIX") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"CSS_PREFIX","hash":{},"data":data,"loc":{"start":{"line":15,"column":16},"end":{"line":15,"column":30}}}) : helper)))
+    + alias4(((helper = (helper = lookupProperty(helpers,"CSS_PREFIX") || (depth0 != null ? lookupProperty(depth0,"CSS_PREFIX") : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"CSS_PREFIX","hash":{},"data":data,"loc":{"start":{"line":14,"column":16},"end":{"line":14,"column":30}}}) : helper)))
     + "time-date-schedule-block-cover\"></div>\n</div>\n";
 },"useData":true});
 
@@ -24481,8 +24086,6 @@ function DayGrid(name, options, container, theme) {
         scheduleContainerTop: 1,
         timezones: options.timezones,
         isReadOnly: options.isReadOnly,
-        isResizable: options.isResizable,
-        isMovable: options.isMovable,
         getViewModelFunc: function(viewModel) {
             return viewModel.schedulesInDateRange[name];
         },
@@ -24858,9 +24461,6 @@ DayGridSchedule.prototype.getBaseViewModel = function(viewModel) {
         scheduleContainerTop: this.options.scheduleContainerTop,
         maxScheduleInDay: maxScheduleInDay,
         isReadOnly: opt.isReadOnly,
-        isResizable: opt.isResizable,
-        dataContext: opt.dataContext,
-        isMovable: opt.isMovable,
         styles: styles
     }, baseViewModel);
 
@@ -25125,11 +24725,7 @@ function Time(options, container, theme) {
         hourEnd: 24,
         defaultMarginBottom: 2,
         minHeight: 18.5,
-        isReadOnly: false,
-        isResizable: true,
-        // eslint-disable-next-line no-undefined
-        dataContext: undefined,
-        isMovable: true
+        isReadOnly: false
     }, options);
 
     this.timeTmpl = timeTmpl;
@@ -25259,8 +24855,6 @@ Time.prototype.getScheduleViewBound = function(viewModel, options) {
     var boundY = this._getScheduleViewBoundY(viewModel, options);
     var schedule = viewModel.model;
     var isReadOnly = util.pick(schedule, 'isReadOnly') || false;
-    var isResizable = util.pick(schedule, 'isResizable') || true;
-    var isMovable = util.pick(schedule, 'isMovable') || true;
     var travelBorderColor = schedule.isFocused ? '#ffffff' : schedule.borderColor;
     if (travelBorderColor === schedule.bgColor) {
         travelBorderColor = null; // follow text color
@@ -25268,8 +24862,6 @@ Time.prototype.getScheduleViewBound = function(viewModel, options) {
 
     return util.extend({
         isReadOnly: isReadOnly,
-        isResizable: isResizable,
-        isMovable: isMovable,
         travelBorderColor: travelBorderColor
     }, boundX, boundY);
 };
@@ -25286,8 +24878,6 @@ Time.prototype._getBaseViewModel = function(ymd, matrices, containerHeight) {
         hourStart = options.hourStart,
         hourEnd = options.hourEnd,
         isReadOnly = options.isReadOnly,
-        isResizable = options.isResizable,
-        isMovable = options.isMovable,
         todayStart,
         baseMS;
 
@@ -25332,9 +24922,7 @@ Time.prototype._getBaseViewModel = function(ymd, matrices, containerHeight) {
                     baseWidth: widthPercent,
                     baseHeight: containerHeight,
                     columnIndex: col,
-                    isReadOnly: isReadOnly,
-                    isResizable: isResizable,
-                    isMovable: isMovable
+                    isReadOnly: isReadOnly
                 });
 
                 util.extend(viewModel, viewBound);
@@ -25361,9 +24949,7 @@ Time.prototype.render = function(ymd, matrices, containerHeight) {
     this.container.innerHTML = this.timeTmpl({
         matrices: matrices,
         styles: this._getStyles(this.theme),
-        isReadOnly: this.options.isReadOnly,
-        isResizable: this.options.isResizable,
-        isMovable: this.options.isMovable
+        isReadOnly: this.options.isReadOnly
     });
 };
 
@@ -25553,8 +25139,6 @@ function TimeGrid(name, options, panelElement) {
         hourEnd: 24,
         timezones: options.timezones,
         isReadOnly: options.isReadOnly,
-        isResizable: options.isResizable,
-        isMovable: options.isMovable,
         showTimezoneCollapseButton: false
     }, options.week);
 
@@ -25808,8 +25392,6 @@ TimeGrid.prototype._renderChildren = function(viewModels, grids, container, them
             isPending: options.isPending,
             isFocused: options.isFocused,
             isReadOnly: options.isReadOnly,
-            isResizable: options.isResizable,
-            isMovable: options.isMovable,
             hourStart: options.hourStart,
             hourEnd: options.hourEnd
         };
@@ -26416,7 +25998,6 @@ Weekday.prototype.getBaseViewModel = function(viewModel) {
     var exceedDate = viewModel.exceedDate || {};
     var theme = viewModel.theme;
     var now = new TZDate().toLocalTime();
-    // console.log(viewModel);
 
     this._cacheParentViewModel = viewModel;
 
@@ -26425,9 +26006,6 @@ Weekday.prototype.getBaseViewModel = function(viewModel) {
         scheduleHeight: opt.scheduleHeight,
         scheduleBlockHeight: (opt.scheduleHeight + opt.scheduleGutter),
         scheduleBlockGutter: opt.scheduleGutter,
-        isMilestone: viewModel.schedulesInDateRange
-            && viewModel.schedulesInDateRange.milestone
-            && viewModel.schedulesInDateRange.milestone.length > 0,
         dates: util.map(range, function(date, index) {
             var day = date.getDay();
             var ymd = datetime.format(new TZDate(date), 'YYYYMMDD');

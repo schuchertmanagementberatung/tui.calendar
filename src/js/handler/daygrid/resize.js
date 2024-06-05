@@ -194,6 +194,8 @@ DayGridResize.prototype._updateSchedule = function(scheduleData) {
         {end: newEnds}
     );
 
+    // console.log('changes', changes);
+
     /**
      * @event DayGridResize#beforeUpdateSchedule
      * @type {object}
@@ -237,6 +239,8 @@ DayGridResize.prototype._onDragEnd = function(dragEndEventData, overrideEventNam
     util.extend(scheduleData, {
         targetModel: dragStart.model
     });
+
+    // console.log('resize_ondragend', skipUpdate, scheduleData);
 
     if (!skipUpdate) {
         this._updateSchedule(scheduleData);

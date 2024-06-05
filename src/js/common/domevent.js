@@ -242,6 +242,7 @@ var domevent = {
      * @param {HTMLElement} el HTML element to prevent all event related with click.
      */
     disableClickPropagation: function(el) {
+        console.log('disableClickPropagation', el);
         domevent.on(el, DRAG.START.join(' ') + ' click dblclick', domevent.stopPropagation);
     },
 
@@ -320,6 +321,7 @@ var domevent = {
      */
     trigger: function(obj, type, eventData) {
         var rMouseEvent = /(mouse|click)/;
+        console.log('trigger', obj, type, eventData);
         if (util.isUndefined(eventData) && rMouseEvent.exec(type)) {
             eventData = domevent.mouseEvent(type);
         }
@@ -412,6 +414,7 @@ var domevent = {
             secondary = '2,6',
             wheel = '4';
 
+        console.log('getMouseButton', mouseEvent);
         /* istanbul ignore else */
         if (document.implementation.hasFeature('MouseEvents', '2.0')) {
             return mouseEvent.button;

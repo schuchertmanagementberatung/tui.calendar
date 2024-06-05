@@ -40,7 +40,11 @@ function Time(options, container, theme) {
         hourEnd: 24,
         defaultMarginBottom: 2,
         minHeight: 18.5,
-        isReadOnly: false
+        isReadOnly: false,
+        isResizable: true,
+        // eslint-disable-next-line no-undefined
+        dataContext: undefined,
+        isMovable: true
     }, options);
 
     this.timeTmpl = timeTmpl;
@@ -170,6 +174,8 @@ Time.prototype.getScheduleViewBound = function(viewModel, options) {
     var boundY = this._getScheduleViewBoundY(viewModel, options);
     var schedule = viewModel.model;
     var isReadOnly = util.pick(schedule, 'isReadOnly') || false;
+    var isResizable = util.pick(schedule, 'isResizable') || true;
+    var isMovable = util.pick(schedule, 'isMovable') || true;
     var travelBorderColor = schedule.isFocused ? '#ffffff' : schedule.borderColor;
     if (travelBorderColor === schedule.bgColor) {
         travelBorderColor = null; // follow text color
@@ -177,6 +183,8 @@ Time.prototype.getScheduleViewBound = function(viewModel, options) {
 
     return util.extend({
         isReadOnly: isReadOnly,
+        isResizable: isResizable,
+        isMovable: isMovable,
         travelBorderColor: travelBorderColor
     }, boundX, boundY);
 };
@@ -193,6 +201,8 @@ Time.prototype._getBaseViewModel = function(ymd, matrices, containerHeight) {
         hourStart = options.hourStart,
         hourEnd = options.hourEnd,
         isReadOnly = options.isReadOnly,
+        isResizable = options.isResizable,
+        isMovable = options.isMovable,
         todayStart,
         baseMS;
 
@@ -237,7 +247,9 @@ Time.prototype._getBaseViewModel = function(ymd, matrices, containerHeight) {
                     baseWidth: widthPercent,
                     baseHeight: containerHeight,
                     columnIndex: col,
-                    isReadOnly: isReadOnly
+                    isReadOnly: isReadOnly,
+                    isResizable: isResizable,
+                    isMovable: isMovable
                 });
 
                 util.extend(viewModel, viewBound);
@@ -264,7 +276,9 @@ Time.prototype.render = function(ymd, matrices, containerHeight) {
     this.container.innerHTML = this.timeTmpl({
         matrices: matrices,
         styles: this._getStyles(this.theme),
-        isReadOnly: this.options.isReadOnly
+        isReadOnly: this.options.isReadOnly,
+        isResizable: this.options.isResizable,
+        isMovable: this.options.isMovable
     });
 };
 

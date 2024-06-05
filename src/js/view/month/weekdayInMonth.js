@@ -95,6 +95,9 @@ WeekdayInMonth.prototype.getBaseViewModel = function(viewModel) {
         gridFooterHeight: gridFooterHeight,
         renderLimitIdx: renderLimitIdx,
         isReadOnly: opt.isReadOnly,
+        isResizable: opt.isResizable,
+        dataContext: opt.dataContext,
+        isMovable: opt.isMovable,
         styles: styles
     }, baseViewModel);
 

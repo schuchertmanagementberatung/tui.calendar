@@ -18,8 +18,9 @@
                     color:{{model.color}}; background-color:{{model.bgColor}}; border-color:{{model.borderColor}};
                 {{/if}}
             {{model.customStyle}}">
+
             <span class="{{CSS_PREFIX}}weekday-schedule-title" title="{{model.title}}">{{{schedule-tmpl model}}}</span>
-            {{#unless (or @root.isReadOnly model.isReadOnly)}}<span class="{{CSS_PREFIX}}weekday-resize-handle handle-y" style="line-height:{{@root.scheduleHeight}}px;">&nbsp;</span>{{/unless}}
+            {{#unless (or (or @root.isReadOnly model.isReadOnly) (or (ne @root.isResizable true) (ne model.isResizable true)))}}<span class="{{CSS_PREFIX}}weekday-resize-handle handle-y" style="line-height:{{@root.scheduleHeight}}px;">&nbsp;</span>{{/unless}}
         </div>
     </div>
     {{/if ~}}
